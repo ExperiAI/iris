@@ -85,7 +85,7 @@
   .eye .s { font-family:var(--mono); font-size:.58rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); line-height:1.6; }
   .eye .s span { white-space:nowrap; } .eye .s span + span::before { content:'·'; margin:0 .45em; color:var(--line); }
   /* yours */
-  .cardwrap { max-width:56rem; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--surface); }
+  .cardwrap { width:100%; max-width:56rem; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--surface); }
   .cardface { position:relative; } .card { width:100%; max-width:100%; aspect-ratio:1256/520; display:block; background:#000; }
   .fchip { position:absolute; top:76%; transform:translateX(-50%); display:grid; justify-items:center; gap:.05em; padding:.45em .9em .5em; border-radius:.35em; background:rgba(11,10,9,.62); border:1px solid rgba(236,230,216,.12); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); font-size:clamp(.55rem,1.1vw,.95rem); white-space:nowrap; }
   #chip-a { left:18.3%; } #chip-b { left:81.6%; }
@@ -94,8 +94,9 @@
   .cstats { display:flex; gap:clamp(.8rem,2.4vw,1.8rem); } .cstats:last-child { justify-content:flex-end; }
   .cstats div { display:grid; gap:.15rem; text-align:center; } .cstats b { font-weight:400; font-size:clamp(1.05rem,2vw,1.55rem); line-height:1; color:var(--ink); font-variant-numeric:tabular-nums; } .cstats small { font-family:var(--mono); font-size:.55rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
   .cmid { text-align:center; } .cmid .yr { font-family:var(--mono); font-size:clamp(.9rem,1.6vw,1.2rem); letter-spacing:.3em; text-indent:.3em; color:var(--accent-ink); } .cmid .pl { font-style:italic; font-size:clamp(1.2rem,2.2vw,1.7rem); color:var(--ink); line-height:1; } .cmid .cc { display:block; font-family:var(--mono); font-size:.55rem; letter-spacing:.2em; color:var(--accent-ink); margin-top:.3rem; }
-  @media (max-width:700px){ .cardband { grid-template-columns:1fr; gap:.6rem; } .cstats:last-child { justify-content:flex-start; } .cmid { order:-1; text-align:left; } }
-  .yrow { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:.5rem; }
+  @media (max-width:700px){ .cardband { grid-template-columns:1fr; gap:.6rem; } .cstats, .cstats:last-child { justify-content:center; } .cmid { order:-1; } }
+  #yours { display:grid; justify-items:center; text-align:center; }
+  .yrow { display:flex; flex-direction:column; align-items:center; gap:.7rem; margin-bottom:.6rem; width:100%; }
   .modes { display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:.18rem; gap:.18rem; }
   .modes button { font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); background:none; border:0; border-radius:999px; padding:.42rem .85rem; cursor:pointer; }
   .modes button[aria-pressed="true"] { color:var(--ground); background:var(--ink); } .modes button:not([aria-pressed="true"]):hover { color:var(--ink); }
@@ -420,8 +421,7 @@
     return row('Warmth', scaleRow(k,'tmean',EXT.tmean.min,EXT.tmean.max), st.tmean.toFixed(1)+' °C', extreme(k,'tmean','warmest','coldest'))
          + row('Rain', scaleRow(k,'rain_mm',EXT.rain_mm.min,EXT.rain_mm.max), st.rain_mm.toLocaleString('en')+' mm', extreme(k,'rain_mm','wettest','driest'))
          + row('Light', scaleRow(k,'day_h',EXT.day_h.min,EXT.day_h.max), st.day_h.toLocaleString('en')+' h', extreme(k,'day_h','most light','least light')); }
-  var PARCHED=/parched/.test(location.hash);   // experimental fifth plate, for review only: open the page with #parched
-  function wetness(rain){ return rain<100&&PARCHED&&(MACRO.drier||MACRO.parched)?(MACRO.drier?'drier':'parched'):rain<800?'dry':rain<2000?'brim':rain<3000?'tear':'weep'; }
+  function wetness(rain){ return rain<100?'drier':rain<800?'dry':rain<2000?'brim':rain<3000?'tear':'weep'; }
   function composePlate(m){ if(!m.lensData) return; var D=m.D, ic=m.iris.getContext('2d',{willReadFrequently:true}), id=ic.getImageData(0,0,D,D), px=id.data, L=m.lensData, pr=m.pupil, c=D/2;
     for(var y=0;y<D;y++){ for(var x=0;x<D;x++){ var i=(y*D+x)*4, sh=L[i]/100, a=L[i+3]; if(a===0){ px[i+3]=0; continue; }
       var dx=x-c, dy=y-c; if(dx*dx+dy*dy<pr*pr){ px[i]=6; px[i+1]=5; px[i+2]=5; } else { px[i]=Math.min(255,px[i]*sh); px[i+1]=Math.min(255,px[i+1]*sh); px[i+2]=Math.min(255,px[i+2]*sh); } px[i+3]=a; } }
