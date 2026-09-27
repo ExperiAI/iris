@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A year of hourly weather, drawn as the iris of a place. Every place has an eye.">
+<meta property="og:title" content="Iris · every place has an eye"><meta property="og:description" content="A year of hourly weather, drawn as an iris. Pick two places, or two years, and make the pair yours."><meta property="og:image" content="https://iris.experiai.com/og.png"><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image">
+<style>html{color-scheme:dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<meta charset="utf-8">
+<title>Iris</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root { color-scheme: dark;
+    --ground:#0b0a09; --surface:#151311; --line:#2a2623; --ink:#ece6d8; --muted:#9a9384; --accent:#d9a441; --accent-ink:#f2d08a;
+    --display:'Cormorant Garamond',Georgia,'Times New Roman',serif; --mono:'IBM Plex Mono',Menlo,Consolas,monospace; }
+  html { background:var(--ground); }
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--display); font-size:17px; line-height:1.4; padding-inline:16px; }
+  main { max-width:84rem; margin:0 auto; padding-block:2rem 5rem; display:grid; gap:7rem; }
+  h1,h2 { font-weight:400; margin:0; line-height:1.05; text-wrap:balance; }
+  h2 { font-size:clamp(1.5rem,2.6vw,2.2rem); }
+  h2 em { font-style:italic; color:var(--accent-ink); }
+  .k { font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  .k b { color:var(--ink); font-weight:500; }
+  section { display:grid; gap:1.6rem; min-width:0; }
+  section > header { display:grid; gap:.4rem; }
+  /* stage 0: the reversal */
+  .stage0 { display:grid; gap:1.2rem; }
+  .facewrap { position:relative; }
+  .face { position:relative; width:100%; max-width:100%; aspect-ratio:1456/388; background:#000; overflow:hidden; border-radius:4px; }
+  .face canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .reveal { position:absolute; inset:0; display:grid; place-items:center; text-align:center; pointer-events:none; }
+  .reveal div { display:grid; padding:1rem 1.6rem; border-radius:6px; min-width:12rem; transition:background 1.2s ease, backdrop-filter 1.2s ease; }
+  .reveal.on div { background:rgba(11,10,9,.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+  .reveal div > * { grid-area:1/1; align-self:center; transition:opacity 1.2s ease; }
+  .reveal p { margin:0; font-size:clamp(1.4rem,3.4vw,2.6rem); line-height:1.15; }
+  .reveal p em { font-style:italic; color:var(--accent-ink); }
+  .reveal .count { justify-self:center; font-size:clamp(1rem,1.6vw,1.35rem); font-style:italic; color:var(--ink); background:rgba(11,10,9,.58); border:1px solid rgba(236,230,216,.1); border-radius:6px; padding:.4rem .95rem .45rem; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+  .reveal .count em { font-style:italic; color:var(--ink); display:inline-block; min-width:5.5em; text-align:center; transition:opacity .28s ease; } .reveal .count em.sw { opacity:0; }
+  .reveal .line, .reveal small { opacity:0; } .reveal.on .line, .reveal.on small { opacity:1; } .reveal.on .count { opacity:0; }
+  .reveal small { display:block; align-self:end; margin-top:.6rem; font-family:var(--mono); font-size:.68rem; letter-spacing:.3em; text-indent:.3em; color:var(--accent-ink); grid-area:2/1; }
+  .caps { position:absolute; inset:0; pointer-events:none; }
+  .cap { position:absolute; bottom:6%; transform:translateX(-50%); white-space:nowrap; display:grid; gap:.22rem; padding:.5rem .95rem .55rem; border-radius:6px;
+    background:rgba(11,10,9,.58); border:1px solid rgba(236,230,216,.1); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); font-family:var(--display); text-transform:none; letter-spacing:0; }
+  .cap b { font-weight:400; font-style:italic; font-size:clamp(1.05rem,1.6vw,1.45rem); line-height:1; color:var(--ink); }
+  .cap i { font-style:normal; font-family:var(--mono); font-size:.5rem; letter-spacing:.24em; text-transform:uppercase; color:var(--accent-ink); line-height:1; }
+  .cap.key { display:grid; justify-items:center; gap:.3rem; padding:.5rem .8rem .5rem; }
+  .cap.key .legend { margin:0; } .cap.key .legend i { width:4.2rem; height:.4rem; }
+  .crops { display:none; }
+  .crops .cap.key.phone { position:static; transform:none; justify-self:center; }
+  .crop { margin:0; position:relative; }
+  .crop canvas { width:100%; aspect-ratio:2; max-width:100%; display:block; border-radius:4px; background:#000; }
+  .crop .cap { left:auto; right:4%; bottom:7%; transform:none; }
+  .crop .cap b { font-size:1.15rem; }
+  @media (max-width:700px){
+    .face { display:none; }
+    .crops { display:grid; gap:1rem; }
+    .reveal { position:static; display:block; padding:1rem 0 0; }
+    .reveal div { background:none; padding:0; }
+  }
+  .legend { display:inline-flex; vertical-align:middle; margin:0 .2em; gap:.6rem; align-items:center; font-family:var(--mono); font-size:.58rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+  .legend i { display:inline-block; width:3rem; height:.45rem; border-radius:2px; background:linear-gradient(90deg,#96bee6,#5f82af,#6e8796,#788c6e,#aa8c50,#c8963c,#a05f2d,#78372a); }
+  .how { display:grid; gap:1.4rem; padding:1.2rem 0 .6rem; }
+  .howbox { display:grid; grid-template-columns:minmax(0,22rem) minmax(0,34rem); gap:3rem; align-items:center; justify-content:center; }
+  @media (max-width:760px){ .howbox { grid-template-columns:1fr; gap:1.4rem; justify-items:center; } .howeye { max-width:17rem; } }
+  .howeye { position:relative; width:100%; aspect-ratio:1; }
+  .howeye canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  #how-hl { background:transparent; }
+  .howlist { list-style:none; margin:0; padding:0; display:grid; gap:.15rem; max-width:34rem; }
+  .howlist li { display:grid; grid-template-columns:2.4rem minmax(0,1fr); grid-template-rows:auto auto; column-gap:.9rem; align-items:center; padding:.5rem .8rem; border-radius:6px; cursor:pointer; border-left:2px solid transparent; transition:background .2s, border-color .2s; color:var(--muted); }
+  .howlist li svg { grid-row:1/3; width:2.4rem; height:2.4rem; } .howlist li .glyph { grid-row:1/3; display:flex; align-items:center; } .howlist li .glyph i { width:2.4rem; height:.5rem; margin:0; }
+  .howlist li small { grid-column:2; font-family:var(--mono); font-size:.55rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  .howlist li b { grid-column:2; font-weight:400; color:var(--ink); font-size:1.15rem; line-height:1.2; }
+  .howlist li.on { background:var(--surface); border-left-color:var(--accent); }
+  .howlist li.on b { color:var(--accent-ink); }
+
+  /* eyes grid */
+  .eyes { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:1.6rem 1.2rem; }
+  @media (max-width:1000px){ .eyes { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+  @media (max-width:600px){ .eyes { grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.4rem .7rem; } .eye .s { font-size:.52rem; letter-spacing:.04em; } .eye .n { font-size:1.05rem; } }
+  .eye { display:grid; grid-template-columns:minmax(0,1fr); min-width:0; gap:.45rem; justify-items:center; text-align:center; background:transparent; border:0; padding:0; color:inherit; font:inherit; cursor:pointer; border-radius:8px; }
+  .eye:focus-visible { outline:2px solid var(--accent); outline-offset:6px; }
+  .eye canvas { width:100%; aspect-ratio:1; max-width:100%; border-radius:50%; background:#000; display:block; transition:transform .25s ease; }
+  .eye:hover canvas, .eye.on canvas { transform:scale(1.05); }
+  .eye .n { font-size:1.2rem; line-height:1.1; margin-top:.15rem; }
+  .eye .c { font-family:var(--mono); font-size:.55rem; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-ink); }
+  .eye .s { font-family:var(--mono); font-size:.58rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); line-height:1.6; }
+  .eye .s span { white-space:nowrap; } .eye .s span + span::before { content:'·'; margin:0 .45em; color:var(--line); }
+  /* yours */
+  .card { width:100%; max-width:100%; aspect-ratio:1256/750; display:block; border-radius:8px; background:#000; border:1px solid var(--line); }
+  .sentence { font-size:clamp(1.5rem,3vw,2.3rem); line-height:1.5; }
+  .sentence .s { display:inline; } .sentence .s[hidden] { display:none; }
+  .sentence .w { color:var(--muted); margin:0 .45em; }
+  .sel { position:relative; display:inline-block; }
+  .sel select { font:inherit; font-style:italic; color:var(--accent-ink); background:none; border:0; border-bottom:1px solid var(--line); border-radius:0; padding:0 1.15em .05em 0; appearance:none; -webkit-appearance:none; cursor:pointer; max-width:100%; }
+  .sel select:hover { border-bottom-color:var(--accent); } .sel select:focus-visible { outline:none; border-bottom-color:var(--accent-ink); }
+  .sel::after { content:''; position:absolute; right:.25em; top:50%; width:.42em; height:.42em; border-right:1.5px solid var(--accent); border-bottom:1.5px solid var(--accent); transform:translateY(-70%) rotate(45deg); pointer-events:none; }
+  .sel select option { font-style:normal; font-size:1rem; color:var(--ink); background:var(--surface); }
+  .swap { font:inherit; font-size:1rem; color:var(--muted); background:none; border:0; border-bottom:1px solid var(--line); padding:0 0 .05rem; cursor:pointer; }
+  .swap:hover { color:var(--ink); border-color:var(--muted); }
+  .actions { display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap; }
+  .save { font:inherit; font-size:1.05rem; color:var(--ground); background:var(--ink); border:0; border-radius:999px; padding:.6rem 1.3rem .65rem; cursor:pointer; }
+  .save:hover { background:#fff; } .save:focus-visible { outline:1px solid var(--accent); outline-offset:2px; }
+  .mtext .actions { padding-top:1.1rem; border-top:1px solid var(--line); }
+  .mtext .save { font-size:.98rem; padding:.5rem 1.1rem .55rem; }
+  .sheet .sheetbox { position:relative; width:min(100%,64rem); display:grid; gap:.9rem; justify-items:center; padding:2.6rem 1rem 1.2rem; box-sizing:border-box; }
+  .sheet img { width:100%; max-width:100%; border-radius:6px; display:block; }
+  /* the open eye */
+  .modal[hidden] { display:none; }
+  .modal { position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:16px; box-sizing:border-box; }
+  .modal-bg { position:absolute; inset:0; background:rgba(6,5,4,.94); }
+  .panel { position:relative; width:min(100%,80rem); max-height:100%; overflow:auto; display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:3rem; align-items:center; padding:2rem; box-sizing:border-box; }
+  .mwrap { position:relative; width:100%; justify-self:center; display:grid; gap:.9rem; }
+  .plate { position:relative; width:100%; aspect-ratio:1.45; overflow:hidden; border-radius:6px; background:#000; }
+  .plate canvas { position:absolute; top:50%; left:50%; height:100%; width:auto; transform:translate(-50%,-50%); display:block; }
+  #m-hover { pointer-events:none; }
+  #m-eye { cursor:crosshair; touch-action:none; }
+  .readout { min-height:3rem; display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-end; gap:.6rem 1.6rem; color:var(--muted); }
+  .readout .when { font-size:1.35rem; font-style:italic; color:var(--accent-ink); line-height:1; padding-bottom:.55rem; }
+  .readout .cell { display:grid; gap:.3rem; text-align:center; } .readout .cell b { font-weight:400; color:var(--ink); font-size:1.15rem; line-height:1; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .readout .cell i { font-style:normal; font-family:var(--mono); font-size:.48rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+  .readout .hint { font-style:italic; font-size:1.05rem; padding-bottom:.6rem; }
+  .mtext { display:grid; gap:1.1rem; align-content:center; }
+  .mtext h3 { margin:0; font-weight:400; font-style:italic; font-size:clamp(2.2rem,4.5vw,3.6rem); line-height:1; }
+  .why { margin:0; font-size:1.25rem; color:var(--muted); max-width:38ch; } .why b { color:var(--ink); font-weight:500; }
+  .scales { display:grid; gap:1.1rem; padding-top:1.2rem; border-top:1px solid var(--line); }
+  .row { display:grid; grid-template-columns:5.2rem minmax(0,1fr) 6.8rem; align-items:start; gap:1.1rem; }
+  .row .l { font-size:1.02rem; color:var(--muted); height:16px; display:flex; align-items:center; }
+  .row .v { font-size:1.35rem; font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right; line-height:1; height:16px; display:flex; flex-direction:column; align-items:flex-end; justify-content:center; }
+  .row .v small { display:block; font-family:var(--mono); font-size:.5rem; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-ink); margin-top:.3rem; }
+  .scale { position:relative; height:16px; }
+  .scale.tall { height:16px; }
+  .scale::before { content:''; position:absolute; left:0; right:0; top:8px; height:1px; background:var(--line); }
+  .scale .t { position:absolute; top:0; width:11px; height:100%; margin-left:-5.5px; cursor:default; }
+  .scale .t::after { content:''; position:absolute; left:5px; top:5px; width:1px; height:7px; background:var(--muted); opacity:.5; }
+  .scale .t:hover::after { opacity:1; background:var(--ink); }
+  .scale .t b small { font-family:var(--mono); font-size:.55rem; letter-spacing:.12em; color:var(--muted); vertical-align:.1em; }
+  .scale .t b { position:absolute; bottom:calc(100% - 2px); left:50%; transform:translateX(-50%); white-space:nowrap; font-weight:400; font-size:.95rem; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:.15rem .5rem; opacity:0; pointer-events:none; transition:opacity .15s; z-index:3; }
+  .scale .t:hover b { opacity:1; }
+  .scale .d { position:absolute; top:4px; width:9px; height:9px; border-radius:50%; background:var(--accent-ink); transform:translateX(-50%); box-shadow:0 0 0 2px var(--ground); }
+  .scale .who { position:absolute; top:19px; font-family:var(--mono); font-size:.48rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); opacity:.8; white-space:nowrap; line-height:1; }
+  .scale .who.lo { left:0; } .scale .who.hi { right:0; }
+  @media (max-width:600px){ .row { grid-template-columns:3.6rem minmax(0,1fr) 5.4rem; gap:.7rem; } .row .v { font-size:1.15rem; } }
+  .use { font-size:1.05rem; color:var(--muted); display:flex; gap:.5rem; align-items:baseline; flex-wrap:wrap; margin-top:.2rem; padding-top:1.1rem; border-top:1px solid var(--line); }
+  .use button { font:inherit; font-style:italic; color:var(--accent-ink); background:none; border:0; border-bottom:1px solid var(--line); padding:0 0 .05rem; cursor:pointer; }
+  .use button:hover { border-color:var(--accent); }
+  .close { position:absolute; top:.6rem; right:.9rem; width:2.4rem; height:2.4rem; font:300 1.9rem/1 var(--display); color:var(--muted); background:none; border:0; cursor:pointer; z-index:2; }
+  .close:hover { color:var(--ink); }
+  .panel:focus { outline:none; }
+  .close:focus-visible, .eye:focus-visible, .use button:focus-visible { outline:1px solid var(--accent); outline-offset:3px; border-radius:50%; }
+  @media (max-width:900px){ .panel { grid-template-columns:1fr; gap:1.4rem; padding:3rem 1rem 1.5rem; align-content:start; } }
+  .foot { border-top:1px solid var(--line); padding-top:1.4rem; color:var(--muted); display:grid; gap:.8rem; }
+  .foot p { margin:0; font-size:1.05rem; }
+  details.notes { color:var(--muted); font-size:1.02rem; max-width:72ch; }
+  details.notes summary { cursor:pointer; font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); }
+  details.notes p, details.notes li { line-height:1.5; } details.notes b { color:var(--ink); font-weight:500; } details.notes ul { padding-left:1.1rem; margin:.4rem 0; }
+</style>
+
+<script src="data.js"></script>
+</head>
+<body>
+<main>
+  <!-- 0 · the reversal -->
+  <section class="stage0">
+    <div class="facewrap">
+      <div class="face"><canvas id="face" width="2912" height="776" aria-label="A pair of eyes whose irises draw themselves from a year of weather"></canvas>
+        <div class="caps">
+          <div class="cap" style="left:22.66%"><b>Belo Horizonte</b><i>Brazil</i></div>
+          <div class="cap" style="left:77.27%"><b>Biasca</b><i>Switzerland</i></div>
+          <div class="cap key" style="left:50%"><span class="legend"><i></i></span><i>cold · warm</i></div>
+        </div>
+      </div>
+      <div class="crops">
+        <figure class="crop"><canvas id="crop-a" width="920" height="460"></canvas><figcaption class="cap"><b>Belo Horizonte</b><i>Brazil</i></figcaption></figure>
+        <figure class="crop"><canvas id="crop-b" width="920" height="460"></canvas><figcaption class="cap"><b>Biasca</b><i>Switzerland</i></figcaption></figure>
+        <div class="cap key phone"><span class="legend"><i></i></span><i>cold · warm</i></div>
+      </div>
+      <div class="reveal" id="reveal"><div><p class="count" aria-live="off"><em id="count-month">January</em></p><p class="line">This is not an eye.<br>It is <em>a year</em>.</p><small>2025</small></div></div>
+    </div>
+    <span class="k" id="clock" hidden></span>
+    <div class="how"><span class="k">How to read an eye</span>
+      <div class="howbox">
+        <div class="howeye"><canvas id="how-eye" width="720" height="720"></canvas><canvas id="how-hl" width="720" height="720" aria-hidden="true"></canvas></div>
+        <ol class="howlist" id="howlist">
+          <li class="on" data-h="day"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="currentColor" stroke-opacity=".35"/><circle cx="20" cy="20" r="4" fill="currentColor" fill-opacity=".35"/><path d="M20 20 L31 8.5" stroke="var(--accent-ink)" stroke-width="2.4"/></svg><b>One fibre is one day</b><small>January at the top · clockwise</small></li>
+          <li data-h="hour"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="currentColor" stroke-opacity=".35"/><path d="M20 20 L20 5" stroke="var(--accent-ink)" stroke-width="2.4"/><path d="M15.5 9.5 L20 4 L24.5 9.5" fill="none" stroke="var(--accent-ink)" stroke-width="2"/></svg><b>Midnight at the pupil, midnight at the rim</b></li>
+          <li data-h="night"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="currentColor" stroke-opacity=".35"/><path d="M20 20 m-9 0 a9 9 0 1 0 18 0 a9 9 0 1 0 -18 0" fill="#000" stroke="var(--accent-ink)" stroke-width="1.6"/></svg><b>The dark is night</b><small>so the pupil's shape is the latitude</small></li>
+          <li data-h="temp"><span class="glyph legend"><i></i></span><b>The colour is the temperature</b><small>cold · warm</small></li>
+          <li data-h="rain"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="currentColor" stroke-opacity=".35"/><circle cx="20" cy="20" r="3.2" fill="#f4f6fb"/></svg><b>A white dot is a rainy hour</b></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 · the world -->
+  <section>
+    <header><span class="k">Twenty-five places · north to south · <b>2025</b></span><h2>Every place has an eye. Touch one.</h2></header>
+    <div class="eyes" id="grid-world"></div>
+  </section>
+
+  <!-- 2 · yours: the card -->
+  <section id="yours">
+    <header><span class="k">Yours</span><h2>Two eyes. Choose them.</h2></header>
+    <canvas class="card" id="card" width="1256" height="750" aria-label="Your card: two eyes in one face"></canvas>
+    <div class="sentence" aria-label="Choose the two eyes">
+      <span class="s" data-for="places"><span class="sel"><select id="pa" aria-label="Left eye, place"></select></span><span class="w">and</span><span class="sel"><select id="pb" aria-label="Right eye, place"></select></span><span class="w">in</span><span class="sel"><select id="py" aria-label="Year"></select></span></span>
+      <span class="s" data-for="years" hidden><span class="sel"><select id="pp" aria-label="Place"></select></span><span class="w">in</span><span class="sel"><select id="pya" aria-label="Left eye, year"></select></span><span class="w">and</span><span class="sel"><select id="pyb" aria-label="Right eye, year"></select></span></span>
+    </div>
+    <div class="actions"><button type="button" class="save" id="save">Save as image</button><button type="button" class="swap" id="swap">Compare two years of one place instead</button></div>
+  </section>
+
+  <section class="foot">
+    <p>Drawn live from the hourly weather archive (Open-Meteo, ERA5). Nothing on this page is a picture, except the faces, which are here to hold the eyes.</p>
+    <details class="notes"><summary>Notes for Diego · the exhibit, built</summary>
+      <p><b>The exhibit is this page, on experiai.com/lab/iris,</b> in this order: the reversal, the world, yours (the card). Nothing else. Scrolling is the only navigation; every stage is one screen.</p>
+      <ul>
+        <li><b>Reversal:</b> the eyes draw themselves once, as a clock (month under it). The two lines appear when the year is complete. First visit only; after that the eyes are already open.</li>
+        <li><b>The world:</b> the 25 eyes as here, plus "find mine" that geolocates (with permission) and lights the nearest.</li>
+        <li><b>Yours:</b> two town fields with autocomplete (Open-Meteo geocoding, free); the portrait is the pair of eyes plus the card. <b>Own photo = later experiment, not launch:</b> feasible in the browser (MediaPipe face landmarks give the iris centre, radius and the lid contour; the photo never leaves the device), but quality depends on the photo (frontal, lit, eyes open, no glasses glare) and a pasted iris can read as a contact lens. Ship the exhibit without it; prototype it behind a quality gate afterwards.</li>
+        <li><b>The card:</b> the post. Two places in one year, or one place in two years; any town (geocoding), any year since 1941 (one archive call per eye, cached). Save downloads the PNG (2400×1500); the opened eye saves its own card (the eye as shown + caption). The Web Share API on phones where available.</li>
+        <li><b>Faces on the page:</b> only the visitor's own, or none. No generated people in the exhibit; the generated faces were for prototyping.</li>
+        <li><b>Stack:</b> one static page, the canvas code from this preview, no server, no keys. Build: about one week. Cost: $0.</li>
+        <li><b>Film:</b> optional trailer later, cut from the exhibit's own stages.</li>
+      </ul>
+    </details>
+  </section>
+  <div class="modal" id="modal" hidden>
+    <div class="modal-bg" data-close></div>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="m-name" tabindex="-1">
+      <button class="close" data-close aria-label="Close">×</button>
+      <div class="mwrap"><div class="plate"><canvas id="m-eye" width="1372" height="770"></canvas><canvas id="m-hover" width="1372" height="770" aria-hidden="true"></canvas></div>
+        <div class="readout" id="m-read"><span class="hint">Move over the iris: every fibre is a day</span></div></div>
+      <div class="mtext">
+        <h3 id="m-name"></h3>
+        <div class="k" id="m-where"></div>
+        <p class="why" id="m-why"></p>
+        <div class="scales" id="m-nums"></div>
+        <div class="actions"><button type="button" class="save" id="m-share">Save as image</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal sheet" id="sheet" hidden>
+    <div class="modal-bg" data-close-sheet></div>
+    <div class="sheetbox" role="dialog" aria-modal="true" aria-label="Your image" tabindex="-1">
+      <button class="close" data-close-sheet aria-label="Close">×</button>
+      <img id="sheet-img" alt="Your card">
+      <p class="k">Press and hold, or right-click, to save · on the Lab page this downloads</p>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var DATA = window.__IRIS.DATA;   // place -> {label,lat,lon,tz,years:{'2025':{stats,b64},...}}; b64 = 5 bytes per hour
+  function decode(b64){ var bin=atob(b64), n=bin.length/5|0, rows=new Array(n); for(var i=0;i<n;i++){ var o=i*5, t=bin.charCodeAt(o)|(bin.charCodeAt(o+1)<<8); if(t>32767) t-=65536; var c=bin.charCodeAt(o+4); rows[i]=[t,bin.charCodeAt(o+2)*2.5,bin.charCodeAt(o+3)*5,c&127,c>>7]; } return rows; }
+  function rowsOf(k,y){ var e=DATA[k].years[y]; if(!e.rows) e.rows=decode(e.b64); return e.rows; }
+  function yearsOf(k){ return Object.keys(DATA[k].years).sort(); }
+  var WORLD={}; Object.keys(DATA).forEach(function(k){ var d=DATA[k]; WORLD[k]={label:d.label,lat:d.lat,lon:d.lon,tz:d.tz,stats:d.years['2025'].stats}; Object.defineProperty(WORLD[k],'rows',{get:function(){ return rowsOf(k,'2025'); }}); });
+  var FACE = window.__IRIS.FACE;   // {src, w, h, eyes:[[x,y,r],[x,y,r]]}
+  var FACE2 = window.__IRIS.FACE2;  // the whole face for the card: {src,w,h,eyes}
+  var MACRO = window.__IRIS.MACRO; // dry/brim/tear/weep: {w,h,x0,y0,D,r,pupil,plate,lens}
+  var WHY = {
+    tromso:'<b>Polar night.</b> For seven weeks the sun never rises, so the pupil reaches the rim.',
+    reykjavik:'<b>Long twilight.</b> Never a hot day.',
+    yakutsk:'<b>The coldest city on Earth.</b>',
+    anchorage:'<b>Snow, then a short bright summer</b> against long dark.',
+    london:'<b>Cloud.</b> Mild, muted, few extremes.',
+    paris:'<b>Temperate,</b> with a heatwave every July now.',
+    lisbon:'<b>Atlantic light.</b> Dry bright summers; the rain comes back with autumn.',
+    biasca:'<b>Home of the Lab.</b> Every other place is read against this one.',
+    newyork:'<b>Four seasons at full strength.</b>',
+    tokyo:'<b>Monsoon summer:</b> humid heat and a rainy June.',
+    phoenix:'<b>Desert.</b> The hottest big city in America.',
+    cairo:'<b>Nineteen wet hours</b> in the whole year.',
+    cherrapunji:'<b>The wettest place on Earth.</b>',
+    mumbai:'<b>Monsoon.</b> Bone dry, then four months of rain arrive like a wall.',
+    lagos:'<b>Equatorial heat</b> with two rainy seasons.',
+    singapore:'<b>No seasons.</b> A perfectly round pupil; every day the same length.',
+    quito:'<b>Eternal spring.</b> On the equator at 2,850 m: 12 °C every day, no year in it.',
+    saltlakecity:'<b>High desert basin.</b> Snow in winter, hot dry summers.',
+    belohorizonte:'<b>Highland tropics.</b> Warm all year, a dry winter, rain from October.',
+    roswell:'<b>High desert.</b> Scorching days, freezing nights.',
+    alicesprings:'<b>Outback.</b> Scorching summers, freezing winter nights.',
+    sydney:'<b>Ocean-tempered.</b> Gentle seasons, on the other side of the year.',
+    capetown:'<b>Winter rain, dry summer.</b> The Mediterranean pattern, upside down.',
+    wellington:'<b>The windiest capital.</b> Mild all year, seasons upside down.',
+    ushuaia:'<b>The end of the world.</b> Cold, and winter in June.'
+  };
+  var CC={Norway:'NO',Iceland:'IS',Russia:'RU',USA:'US','Utah, USA':'US','New Mexico, USA':'US',UK:'GB',France:'FR',Switzerland:'CH',Japan:'JP',Egypt:'EG',India:'IN',Nigeria:'NG',Singapore:'SG',Ecuador:'EC',Brazil:'BR',Australia:'AU','South Africa':'ZA',Argentina:'AR','New Zealand':'NZ',Portugal:'PT',Indonesia:'ID'};
+  function cc(e){ var c=e.label.split(',').slice(1).join(',').trim(); return CC[c]||CC[c.split(',').pop().trim()]||''; }
+  var STOPS=[[-10,[150,190,230]],[0,[95,130,175]],[8,[110,135,150]],[14,[120,140,110]],[20,[170,140,80]],[26,[200,150,60]],[32,[160,95,45]],[40,[120,55,35]]];
+  function pig(t){ if(t<=STOPS[0][0]) return STOPS[0][1]; for(var i=1;i<STOPS.length;i++){ if(t<=STOPS[i][0]){ var a=STOPS[i-1],b=STOPS[i],x=(t-a[0])/(b[0]-a[0]); return [a[1][0]+(b[1][0]-a[1][0])*x,a[1][1]+(b[1][1]-a[1][1])*x,a[1][2]+(b[1][2]-a[1][2])*x]; } } return STOPS[STOPS.length-1][1]; }
+  function drawEye(ctx,S,rows,from,to){
+    var cx=S/2, cy=S/2, R=S*0.47, r0=S*0.05, seg=(R-r0)/24, N=rows.length;
+    for(var i=from;i<to&&i<N;i++){
+      var d=Math.floor(i/24), h=i%24, a=(d/365)*Math.PI*2-Math.PI/2;
+      var r=rows[i], t=r[0]/10, p=r[1]/10, w=r[2]/10, cl=r[3]/100, day=r[4];
+      var ra=r0+h*seg, rb=ra+seg*1.02, bend=(w/20)*0.012*(h/24+0.3)*(d%2?1:-1), a1=a+bend*0.5, a2=a+bend;
+      var c=pig(t), g=(c[0]+c[1]+c[2])/3; c=[c[0]+(g-c[0])*cl*0.35, c[1]+(g-c[1])*cl*0.35, c[2]+(g-c[2])*cl*0.35];
+      var k=1-cl*0.28; if(!day){ k*=0.16; }
+      ctx.strokeStyle='rgb('+(c[0]*k|0)+','+(c[1]*k|0)+','+(c[2]*k|0)+')'; ctx.lineWidth=Math.max(1,(2*Math.PI*rb/365)*0.95); ctx.lineCap='butt';
+      ctx.beginPath(); ctx.moveTo(cx+Math.cos(a1)*ra, cy+Math.sin(a1)*ra); ctx.lineTo(cx+Math.cos(a2)*rb, cy+Math.sin(a2)*rb); ctx.stroke();
+      if(p>1 && day){ var fr=Math.min(1,p/8); ctx.fillStyle='rgba(235,240,250,'+(0.25+0.6*fr).toFixed(2)+')'; ctx.beginPath(); ctx.arc(cx+Math.cos(a2)*(ra+seg*0.5), cy+Math.sin(a2)*(ra+seg*0.5), Math.max(0.6,S*0.0016*(0.6+fr)),0,7); ctx.fill(); }
+    }
+  }
+  function paper(ctx,S){ ctx.fillStyle='#000'; ctx.fillRect(0,0,S,S); }
+  function finishEye(ctx,S){ var g=ctx.createRadialGradient(S/2,S/2,S*0.43,S/2,S/2,S*0.5); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(0.7,'rgba(0,0,0,0.55)'); g.addColorStop(1,'rgba(0,0,0,1)'); ctx.fillStyle=g; ctx.fillRect(0,0,S,S); }
+  function still(cv,rows){ var ctx=cv.getContext('2d'), S=cv.width; paper(ctx,S); drawEye(ctx,S,rows,0,rows.length); finishEye(ctx,S); }
+  function sub(e){ return '<span style="white-space:nowrap"><b>'+e.stats.tmean.toFixed(1)+' °C</b></span> <span style="white-space:nowrap">'+e.stats.rain_mm+' mm</span>'; }
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'], mdays=[31,28,31,30,31,30,31,31,30,31,30,31];
+  function dateOf(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } return (d+1)+' '+months[m]; }
+  var cMonth=document.getElementById('count-month'), curMonth=0, swapping=false;
+  function count(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } if(m===curMonth||swapping) return; swapping=true; cMonth.classList.add('sw'); setTimeout(function(){ cMonth.textContent=MONTHS[m]; curMonth=m; cMonth.classList.remove('sw'); swapping=false; },280); }
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- stage 0: eyes drawing inside a face
+  var fc=document.getElementById('face'), fctx=fc.getContext('2d'), img=new Image(), ROWS=[WORLD.belohorizonte.rows, WORLD.biasca.rows], clock=document.getElementById('clock'), reveal=document.getElementById('reveal');
+  var scale=fc.width/FACE.w; var off=[], masks=[], tmp=document.createElement('canvas'), pos=0;
+  var GROW=[1.28,1.22]; FACE.eyes.forEach(function(e,i){ var S=Math.round(e[2]*2*GROW[i]*scale); var c=document.createElement('canvas'); c.width=c.height=S; paper(c.getContext('2d'),S); off.push(c); });
+  // the lid mask: the face's own dark disc (already cut by the lids) intersected with the iris circle
+  function buildMasks(){
+    fctx.drawImage(img,0,0,fc.width,fc.height);
+    FACE.eyes.forEach(function(e,i){ var S=off[i].width, x=e[0]*scale, y=e[1]*scale, r=e[2]*scale, x0=Math.round(x-S/2), y0=Math.round(y-S/2);
+      var src=fctx.getImageData(x0,y0,S,S).data, a=new Float32Array(S*S), k;
+      for(k=0;k<S*S;k++){ var g=(src[k*4]+src[k*4+1]+src[k*4+2])/3, px=k%S-(x-x0), py=Math.floor(k/S)-(y-y0), d=Math.hypot(px,py);
+        a[k]=Math.max(0,Math.min(1,(46-g)/14))*Math.max(0,Math.min(1,(r*1.04-d)/1.5)); }
+      var m=document.createElement('canvas'); m.width=m.height=S; var md=m.getContext('2d').createImageData(S,S);
+      for(k=0;k<S*S;k++){ var yy=Math.floor(k/S), xx=k%S, s=0, n=0; for(var dy=-1;dy<=1;dy++) for(var dx=-1;dx<=1;dx++){ var X=xx+dx, Y=yy+dy; if(X>=0&&Y>=0&&X<S&&Y<S){ s+=a[Y*S+X]; n++; } }
+        md.data[k*4]=md.data[k*4+1]=md.data[k*4+2]=255; md.data[k*4+3]=Math.round(255*s/n); }
+      m.getContext('2d').putImageData(md,0,0); masks.push({m:m,x0:x0,y0:y0,S:S}); });
+    tmp.width=tmp.height=masks[0].S;
+  }
+  function compose(){
+    fctx.drawImage(img,0,0,fc.width,fc.height);
+    FACE.eyes.forEach(function(e,i){ var M=masks[i], S=M.S, x=e[0]*scale, y=e[1]*scale, r=e[2]*scale, t=tmp.getContext('2d');
+      t.globalCompositeOperation='source-over'; t.clearRect(0,0,S,S); t.drawImage(off[i],0,0);
+      t.fillStyle='#050404'; t.beginPath(); t.arc(S/2,S/2,r*0.36,0,7); t.fill();
+      t.globalCompositeOperation='destination-in'; t.drawImage(M.m,0,0);
+      fctx.drawImage(tmp,M.x0,M.y0);
+      fctx.save(); fctx.globalCompositeOperation='lighten'; fctx.beginPath(); fctx.arc(x,y,r,0,7); fctx.clip(); fctx.drawImage(img,0,0,fc.width,fc.height); fctx.restore(); });
+    if(window.innerWidth<=700){ crops.forEach(function(c,i){ var e=FACE.eyes[i], sw=460*scale, sh=230*scale; c.getContext('2d').drawImage(fc, e[0]*scale-sw/2, e[1]*scale-sh/2+4*scale, sw, sh, 0,0,c.width,c.height); }); }
+  }
+  var crops=[document.getElementById('crop-a'),document.getElementById('crop-b')];
+  function fit(){ if(pos>=8760 || reduce) compose(); }
+  window.addEventListener('resize',fit);
+  img.onload=function(){
+    buildMasks();
+    if(reduce){ off.forEach(function(c,i){ drawEye(c.getContext('2d'),c.width,ROWS[i],0,8760); }); compose(); count(8759); reveal.classList.add('on'); clock.textContent='8,760 hours'; return; }
+    (function tick(){
+      if(pos<8760){ off.forEach(function(c,i){ drawEye(c.getContext('2d'),c.width,ROWS[i],pos,pos+18); }); pos+=18; compose(); count(Math.min(pos,8759)); requestAnimationFrame(tick); }
+      else { compose(); count(8759); clock.textContent='8,760 hours'; setTimeout(function(){ reveal.classList.add('on'); }, 900); }
+    })();
+  };
+  img.src=FACE.src;
+
+  // ---- how to read: a small eye that lights the part each line explains
+  (function(){ var rows=WORLD.biasca.rows, eye=document.getElementById('how-eye'), hl=document.getElementById('how-hl'); if(!eye) return;
+    still(eye,rows); var S=hl.width, cx=S/2, R=S*0.47, r0=S*0.05, seg=(R-r0)/24, h=hl.getContext('2d'), G='#f2d08a', D=190;
+    function ang(d){ return (d/365)*Math.PI*2-Math.PI/2; }
+    function dim(){ h.fillStyle='rgba(11,10,9,.62)'; h.fillRect(0,0,S,S); }
+    function sector(d0,d1,ra,rb){ h.beginPath(); h.arc(cx,cx,ra,ang(d0),ang(d1)); h.arc(cx,cx,rb,ang(d1),ang(d0),true); h.closePath(); }
+    function label(t,x,y,al){ h.font='500 22px "IBM Plex Mono", Menlo, monospace'; h.fillStyle=G; h.textAlign=al||'center'; h.textBaseline='middle'; h.fillText(t,x,y); }
+    var draw={
+      day:function(){ dim(); h.save(); sector(D,D+1.2,r0-2,R+8); h.clip(); h.drawImage(eye,0,0); h.restore(); sector(D,D+1.2,r0-2,R+8); h.strokeStyle=G; h.lineWidth=2; h.stroke();
+        label('1 Jan',cx,r0*0.9+S*0.02,'center'); h.beginPath(); h.moveTo(cx,S*0.005); h.lineTo(cx,r0*0.5); h.strokeStyle=G; h.lineWidth=1.5; h.stroke();
+      },
+      hour:function(){ dim(); h.save(); sector(D-6,D+6,r0-2,R+2); h.clip(); h.drawImage(eye,0,0); h.restore(); var a=ang(D);
+        for(var k=0;k<=24;k+=6){ var r=r0+k*seg; h.beginPath(); h.arc(cx,cx,r,ang(D-6),ang(D+6)); h.strokeStyle=k%12?'rgba(242,208,138,.45)':G; h.lineWidth=k%12?1:2; h.stroke(); }
+        var a2=ang(D+9); label('00:00',cx+Math.cos(a2)*(r0+seg*1.5),cx+Math.sin(a2)*(r0+seg*1.5),'left'); label('12:00',cx+Math.cos(a2)*(r0+seg*12),cx+Math.sin(a2)*(r0+seg*12),'left'); label('24:00',cx+Math.cos(a2)*(R+4),cx+Math.sin(a2)*(R+4),'left'); },
+      night:function(){ h.drawImage(eye,0,0); h.globalAlpha=1; var rise=[],set=[]; for(var d=0;d<365;d++){ var f=-1,l=-1; for(var k=0;k<24;k++){ if(rows[d*24+k][4]){ if(f<0) f=k; l=k+1; } } rise.push(f<0?24:f); set.push(l<0?0:l); }
+        [rise,set].forEach(function(arr){ h.beginPath(); for(var d=0;d<365;d++){ var a=ang(d+0.5), r=r0+arr[d]*seg; if(d) h.lineTo(cx+Math.cos(a)*r,cx+Math.sin(a)*r); else h.moveTo(cx+Math.cos(a)*r,cx+Math.sin(a)*r); } h.closePath(); h.strokeStyle=G; h.lineWidth=2; h.stroke(); });
+        label('night',cx,cx-r0*0.2,'center'); label('night',cx,S*0.965,'center'); label('day',cx,cx-(r0+seg*14),'center'); },
+      temp:function(){ h.drawImage(eye,0,0); },
+      rain:function(){ dim(); h.globalAlpha=.9; for(var i=0;i<rows.length;i++){ var r=rows[i]; if(r[1]>10&&r[4]){ var d=Math.floor(i/24), k=i%24, a=ang(d+0.5), rr=r0+(k+0.5)*seg; h.beginPath(); h.arc(cx+Math.cos(a)*rr,cx+Math.sin(a)*rr,2.6,0,7); h.fillStyle='#f4f6fb'; h.fill(); } } h.globalAlpha=1; }
+    };
+    function show(k){ h.clearRect(0,0,S,S); h.globalAlpha=1; (draw[k]||draw.day)(); }
+    var list=document.getElementById('howlist'); function pick(li){ list.querySelectorAll('li').forEach(function(x){ x.classList.toggle('on',x===li); }); show(li.dataset.h); }
+    list.querySelectorAll('li').forEach(function(li){ li.addEventListener('mouseenter',function(){ pick(li); }); li.addEventListener('click',function(){ pick(li); }); });
+    show('day'); })();
+
+  // ---- stage 1: the world
+  var keys=Object.keys(WORLD).sort(function(a,b){ return WORLD[b].lat-WORLD[a].lat; });
+  var gw=document.getElementById('grid-world');
+  function place(e){ var parts=e.label.split(','); return {name:parts[0].trim(), country:parts.slice(1).join(',').trim()||parts[0].trim()}; }
+  function latlon(e){ return (e.lat>=0?e.lat.toFixed(0)+'° N':(-e.lat).toFixed(0)+'° S')+' '+(e.lon>=0?e.lon.toFixed(0)+'° E':(-e.lon).toFixed(0)+'° W'); }
+  keys.forEach(function(k){ var e=WORLD[k], pl=place(e); var d=document.createElement('button'); d.type='button'; d.className='eye'; d.setAttribute('aria-label','Open '+pl.name);
+    var c=document.createElement('canvas'); c.width=c.height=520; d.appendChild(c);
+    var n=document.createElement('div'); n.className='n'; n.textContent=pl.name; d.appendChild(n);
+    var cc=document.createElement('div'); cc.className='c'; cc.textContent=pl.country; d.appendChild(cc);
+    var s=document.createElement('div'); s.className='s'; s.innerHTML='<span>'+(e.lat>=0?e.lat.toFixed(0)+'° N':(-e.lat).toFixed(0)+'° S')+'</span> <span>'+e.stats.tmean.toFixed(1)+' °C</span>'; d.appendChild(s);
+    d.addEventListener('click',function(){ openEye(k); }); gw.appendChild(d); d._rows=e.rows; d._cv=c; });
+  // draw each small eye at its real device-pixel size (a downscaled 520 px canvas shows moiré)
+  (function drawGrid(){ var first=gw.querySelector('canvas'); if(!first) return; var px=Math.max(160,Math.min(640,Math.round(first.getBoundingClientRect().width*(window.devicePixelRatio||1))));
+    gw.querySelectorAll('.eye').forEach(function(d){ if(d._cv.width!==px){ d._cv.width=d._cv.height=px; still(d._cv,d._rows); } }); })();
+
+  // the open eye: draws itself once as a year, with the place's story
+  var modal=document.getElementById('modal'), mcv=document.getElementById('m-eye'), mctx=mcv.getContext('2d'), mraf=0, lastFocus=null, CUR=null;
+  // the three eye plates: the image, and the lens (red = the plate's shading ×100, alpha = disc under the lids)
+  Object.keys(MACRO).forEach(function(k){ var m=MACRO[k]; m.img=new Image(); m.img.src=m.plate; var li=new Image(); li.onload=function(){ var c=document.createElement('canvas'); c.width=c.height=m.D; var x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(li,0,0); m.lensData=x.getImageData(0,0,m.D,m.D).data;
+      var mk=document.createElement('canvas'); mk.width=mk.height=m.D; var mx=mk.getContext('2d'), id=mx.createImageData(m.D,m.D); for(var i=0;i<m.D*m.D;i++){ id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=255; id.data[i*4+3]=m.lensData[i*4+3]; } mx.putImageData(id,0,0); m.maskCv=mk; }; li.src=m.lens;
+    m.iris=document.createElement('canvas'); m.iris.width=m.iris.height=m.D; m.tmp=document.createElement('canvas'); m.tmp.width=m.tmp.height=m.D; });
+  // where this place sits among the 25: a line from the lowest to the highest, the others as faint ticks, this one in gold
+  var EXT={}; ['tmean','rain_mm','day_h','tmin','tmax'].forEach(function(f){ var v=keys.map(function(q){ return WORLD[q].stats[f]; }); EXT[f]={min:Math.min.apply(null,v),max:Math.max.apply(null,v)}; });
+  function pct(v,lo,hi){ return ((v-lo)/(hi-lo)*100).toFixed(1)+'%'; }
+  function fmt(q,f){ var v=WORLD[q].stats[f]; return f==='tmean'?v.toFixed(1)+' °C':f==='rain_mm'?v.toLocaleString('en')+' mm':v.toLocaleString('en')+' h'; }
+  function scaleRow(k,f,lo,hi,extra){ var h='', ordered=keys.slice().sort(function(a,b){ return WORLD[a].stats[f]-WORLD[b].stats[f]; }), first=ordered[0], last=ordered[ordered.length-1];
+    keys.forEach(function(q){ if(q!==k) h+='<i class="t" style="left:'+pct(WORLD[q].stats[f],lo,hi)+'"><b>'+place(WORLD[q]).name+' <small>'+cc(WORLD[q])+'</small> · '+fmt(q,f)+'</b></i>'; });
+
+    return '<div class="scale tall">'+h+(extra||'')+'<i class="d" style="left:'+pct(WORLD[k].stats[f],lo,hi)+'" title="'+place(WORLD[k]).name+'"></i></div>'; }
+  function extreme(k,f,hi,lo){ var v=WORLD[k].stats[f], n=keys.length; var above=keys.filter(function(q){ return WORLD[q].stats[f]>v; }).length; if(above===0) return hi+' of '+n; if(above===n-1) return lo+' of '+n; return ''; }
+  function row(label,scaleHtml,value,note){ return '<div class="row"><span class="l">'+label+'</span>'+scaleHtml+'<span class="v">'+value+(note?'<small>'+note+'</small>':'')+'</span></div>'; }
+  function stats(k){ var st=WORLD[k].stats;
+    return row('Warmth', scaleRow(k,'tmean',EXT.tmean.min,EXT.tmean.max), st.tmean.toFixed(1)+' °C', extreme(k,'tmean','warmest','coldest'))
+         + row('Rain', scaleRow(k,'rain_mm',EXT.rain_mm.min,EXT.rain_mm.max), st.rain_mm.toLocaleString('en')+' mm', extreme(k,'rain_mm','wettest','driest'))
+         + row('Light', scaleRow(k,'day_h',EXT.day_h.min,EXT.day_h.max), st.day_h.toLocaleString('en')+' h', extreme(k,'day_h','most light','least light')); }
+  function wetness(rain){ return rain<800?'dry':rain<2000?'brim':rain<3000?'tear':'weep'; }
+  function composePlate(m){ if(!m.lensData) return; var D=m.D, ic=m.iris.getContext('2d',{willReadFrequently:true}), id=ic.getImageData(0,0,D,D), px=id.data, L=m.lensData, pr=m.pupil, c=D/2;
+    for(var y=0;y<D;y++){ for(var x=0;x<D;x++){ var i=(y*D+x)*4, sh=L[i]/100, a=L[i+3]; if(a===0){ px[i+3]=0; continue; }
+      var dx=x-c, dy=y-c; if(dx*dx+dy*dy<pr*pr){ px[i]=6; px[i+1]=5; px[i+2]=5; } else { px[i]=Math.min(255,px[i]*sh); px[i+1]=Math.min(255,px[i+1]*sh); px[i+2]=Math.min(255,px[i+2]*sh); } px[i+3]=a; } }
+    m.tmp.getContext('2d').putImageData(id,0,0);
+    mctx.drawImage(m.img,0,0,mcv.width,mcv.height); mctx.drawImage(m.tmp,m.x0,m.y0); }
+  function openEye(k){ var e=WORLD[k], pl=place(e), st=e.stats; lastFocus=document.activeElement;
+    document.getElementById('m-name').textContent=pl.name;
+    document.getElementById('m-where').textContent=pl.country+' · '+latlon(e);
+    document.getElementById('m-why').innerHTML=WHY[k]||'';
+    document.getElementById('m-nums').innerHTML=stats(k);
+    modal.dataset.key=k; modal.hidden=false; document.body.style.overflow='hidden';
+    var m=MACRO[wetness(st.rain_mm)]; CUR=m; var ic=m.iris.getContext('2d',{willReadFrequently:true}), D=m.D, p=0; paper(ic,D); cancelAnimationFrame(mraf);
+    mctx.drawImage(m.img,0,0,mcv.width,mcv.height);
+    if(reduce){ drawEye(ic,D,e.rows,0,8760); composePlate(m); }
+    else (function tick(){ if(CUR!==m) return; if(p<8760){ drawEye(ic,D,e.rows,p,p+72); p+=72; composePlate(m); mraf=requestAnimationFrame(tick); } else { composePlate(m); } })();
+    modal.querySelector('.panel').focus({preventScroll:true});
+  }
+  // drill-down: the day under the cursor (one fibre = one day)
+  var hov=document.getElementById('m-hover'), hctx=hov.getContext('2d'), read=document.getElementById('m-read'), HINT=read.innerHTML;
+  function dayAt(ev){ var m=CUR; if(!m) return null; var rect=mcv.getBoundingClientRect(), t=ev.touches?ev.touches[0]:ev; var X=(t.clientX-rect.left)/rect.width*mcv.width, Y=(t.clientY-rect.top)/rect.height*mcv.height;
+    var cx=m.x0+m.D/2, cy=m.y0+m.D/2, x=X-cx, y=Y-cy, r=Math.hypot(x,y), R=m.D*0.47, r0=m.D*0.05;
+    if(r<r0*0.6||r>R*1.04) return null; var a=Math.atan2(y,x)+Math.PI/2; if(a<0) a+=Math.PI*2; return {day:Math.min(364,Math.floor(a/(Math.PI*2)*365)),cx:cx,cy:cy,R:R,r0:r0,m:m}; }
+  function hhmm(h){ return (h<10?'0':'')+h+':00'; }
+  function showDay(ev){ var q=dayAt(ev); var e=WORLD[modal.dataset.key]; hctx.clearRect(0,0,hov.width,hov.height); if(!q||!e){ read.innerHTML=HINT; return; }
+    var rows=e.rows.slice(q.day*24,q.day*24+24), tmin=1e9,tmax=-1e9,rain=0,wmax=0,cl=0,dayh=0,rise=-1,set=-1;
+    rows.forEach(function(r,h){ var t=r[0]/10; if(t<tmin) tmin=t; if(t>tmax) tmax=t; rain+=r[1]/10; if(r[2]/10>wmax) wmax=r[2]/10; cl+=r[3]; if(r[4]){ dayh++; if(rise<0) rise=h; set=h+1; } });
+    var a1=(q.day/365)*Math.PI*2-Math.PI/2, a2=((q.day+1)/365)*Math.PI*2-Math.PI/2;
+    hctx.save(); hctx.strokeStyle='#f2d08a'; hctx.lineWidth=2.5; hctx.beginPath(); hctx.arc(q.cx,q.cy,q.r0,a1,a2); hctx.arc(q.cx,q.cy,q.R,a2,a1,true); hctx.closePath(); hctx.stroke();
+    hctx.fillStyle='rgba(242,208,138,.14)'; hctx.fill();
+    if(q.m.maskCv){ hctx.globalCompositeOperation='destination-in'; hctx.drawImage(q.m.maskCv,q.m.x0,q.m.y0); } hctx.restore();
+    var light = dayh===0 ? 'polar night' : dayh===24 ? 'midnight sun' : hhmm(rise)+'–'+hhmm(set%24);
+    function cell(v,l){ return '<span class="cell"><b>'+v+'</b><i>'+l+'</i></span>'; }
+    read.innerHTML='<span class="when">'+dateOf(q.day*24)+'</span>'+cell(tmin.toFixed(0)+'–'+tmax.toFixed(0)+' °C','low · high')+cell(rain.toFixed(1)+' mm','rain')+cell(light,'daylight')+cell(Math.round(wmax)+' km/h','wind')+cell(Math.round(cl/24)+' %','cloud'); }
+  mcv.addEventListener('mousemove',showDay); mcv.addEventListener('mouseleave',function(){ hctx.clearRect(0,0,hov.width,hov.height); read.innerHTML=HINT; });
+  mcv.addEventListener('touchstart',function(ev){ showDay(ev); },{passive:true}); mcv.addEventListener('touchmove',function(ev){ showDay(ev); ev.preventDefault(); },{passive:false});
+  function closeEye(){ hctx.clearRect(0,0,hov.width,hov.height); read.innerHTML=HINT; modal.hidden=true; document.body.style.overflow=''; cancelAnimationFrame(mraf); if(lastFocus) lastFocus.focus(); }
+  modal.querySelectorAll('[data-close]').forEach(function(el){ el.addEventListener('click',closeEye); });
+  document.addEventListener('keydown',function(ev){ if(ev.key==='Escape' && !modal.hidden) closeEye(); });
+
+  // ---- stage 2: yours. One card, two eyes: two places in one year, or one place in two years.
+  var st={mode:'places', pa:'belohorizonte', pb:'biasca', y:'2025', pp:'biasca', ya:'1950', yb:'2025'};
+  var cardCv=document.getElementById('card'), sel={}; ['pa','pb','py','pp','pya','pyb'].forEach(function(id){ sel[id]=document.getElementById(id); });
+  var byName=keys.slice().sort(function(a,b){ return WORLD[a].label.localeCompare(WORLD[b].label); });
+  function fill(s,items,cur,labelOf){ s.innerHTML=''; items.forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=labelOf?labelOf(v):v; s.appendChild(o); }); s.value=cur; size(s); }
+  function size(s){ var m=document.createElement('span'); m.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;font:inherit;font-style:italic;'; m.textContent=s.options[s.selectedIndex]?s.options[s.selectedIndex].textContent:''; s.parentNode.appendChild(m); var w=m.getBoundingClientRect().width; m.remove(); s.style.width=(w+parseFloat(getComputedStyle(s).fontSize)*1.25)+'px'; }
+  var placeLabel=function(k){ return place(WORLD[k]).name; };
+  function common(a,b){ var yb=yearsOf(b); return yearsOf(a).filter(function(y){ return yb.indexOf(y)>=0; }); }
+  function eyeCanvas(k,y,S){ var c=document.createElement('canvas'); c.width=c.height=S; still(c,rowsOf(k,y)); return c; }
+  function statLine(k,y){ var t=DATA[k].years[y].stats; return t.tmean.toFixed(1)+' °C mean · '+t.rain_mm.toLocaleString('en')+' mm rain'; }
+  function nameCC(k){ return place(WORLD[k]).name+' '+cc(WORLD[k]); }
+  function fitText(ctx,text,font,maxW,minPx){ var m=/(\d+)px/.exec(font), px=+m[1]; for(;;){ ctx.font=font.replace(/\d+px/,px+'px'); if(ctx.measureText(text).width<=maxW||px<=minPx) return; px-=2; } }
+  // the pair card: the whole face, the two irises set into the eyes, a caption band below (1456×1092, 4:3)
+  var F2={img:new Image(), ready:false, masks:null}; F2.img.onload=function(){ F2.ready=true; if(typeof update==='function') update(); }; F2.img.src=FACE2.src;
+  var GROW2=[1.28,1.22];
+  function faceMasks(){ if(F2.masks) return F2.masks; var o=document.createElement('canvas'); o.width=FACE2.w; o.height=FACE2.h; var oc=o.getContext('2d',{willReadFrequently:true}); oc.drawImage(F2.img,0,0);
+    F2.masks=FACE2.eyes.map(function(e,i){ var r=e[2], S=Math.round(r*2*GROW2[i]), x0=Math.round(e[0]-S/2), y0=Math.round(e[1]-S/2), src=oc.getImageData(x0,y0,S,S).data, a=new Float32Array(S*S), k;
+      for(k=0;k<S*S;k++){ var g=(src[k*4]+src[k*4+1]+src[k*4+2])/3, px=k%S-(e[0]-x0), py=Math.floor(k/S)-(e[1]-y0), d=Math.hypot(px,py); a[k]=Math.max(0,Math.min(1,(46-g)/14))*Math.max(0,Math.min(1,(r*1.04-d)/1.5)); }
+      var m=document.createElement('canvas'); m.width=m.height=S; var md=m.getContext('2d').createImageData(S,S);
+      for(k=0;k<S*S;k++){ var yy=Math.floor(k/S), xx=k%S, sm=0, n=0; for(var dy=-1;dy<=1;dy++) for(var dx=-1;dx<=1;dx++){ var X=xx+dx, Y=yy+dy; if(X>=0&&Y>=0&&X<S&&Y<S){ sm+=a[Y*S+X]; n++; } } md.data[k*4]=md.data[k*4+1]=md.data[k*4+2]=255; md.data[k*4+3]=Math.round(255*sm/n); }
+      m.getContext('2d').putImageData(md,0,0); return {m:m,x0:x0,y0:y0,S:S,r:r,cx:e[0],cy:e[1]}; });
+    return F2.masks; }
+  function statCols(ctx,xRight,y,items,big,small){ // items right-aligned as columns: value above, label below
+    var gap=big*1.1, x=xRight; items.slice().reverse().forEach(function(it){ ctx.textAlign='right'; ctx.fillStyle='#ece6d8'; ctx.font='400 '+big+'px "Cormorant Garamond", Georgia, serif'; var w=ctx.measureText(it[0]).width; ctx.fillText(it[0],x,y);
+      ctx.fillStyle='#9a9384'; ctx.font='400 '+small+'px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(it[1].toUpperCase(),x,y+small*1.9); x-=w+gap; }); }
+  function rrect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function chip(ctx,cx,y,primary,secondary){ ctx.font='italic 400 40px "Cormorant Garamond", Georgia, serif'; var w1=ctx.measureText(primary).width; ctx.font='400 15px "IBM Plex Mono", Menlo, monospace'; var w2=ctx.measureText(secondary).width; var w=Math.max(w1,w2)+56, h=88;
+    ctx.fillStyle='rgba(11,10,9,.62)'; rrect(ctx,cx-w/2,y,w,h,8); ctx.fill(); ctx.strokeStyle='rgba(236,230,216,.12)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.textAlign='center'; ctx.textBaseline='alphabetic'; ctx.fillStyle='#ece6d8'; ctx.font='italic 400 40px "Cormorant Garamond", Georgia, serif'; ctx.fillText(primary,cx,y+44);
+    ctx.fillStyle='#f2d08a'; ctx.font='400 15px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(secondary.toUpperCase().split('').join('\u200a'),cx,y+70); }
+  var CROP={x:100,y:120,w:1256,h:520};   // the eye band of the face: the eyes are the picture
+  function renderPair(cv){ var FW=CROP.w, FH=CROP.h, BAND=230, W=FW, H=FH+BAND, ox=-CROP.x, oy=-CROP.y; if(cv.width!==W){ cv.width=W; cv.height=H; } var ctx=cv.getContext('2d');
+    ctx.fillStyle='#0b0a09'; ctx.fillRect(0,0,W,H); if(!F2.ready) return; ctx.drawImage(F2.img,ox,oy);
+    var A = st.mode==='places' ? {k:st.pa,y:st.y} : {k:st.pp,y:st.ya}, B = st.mode==='places' ? {k:st.pb,y:st.y} : {k:st.pp,y:st.yb};
+    var masks=faceMasks(), tmp=document.createElement('canvas');
+    [A,B].forEach(function(e,i){ var M=masks[i], S=M.S; tmp.width=tmp.height=S; var t=tmp.getContext('2d'); var ic=document.createElement('canvas'); ic.width=ic.height=S; var icx=ic.getContext('2d'); paper(icx,S); drawEye(icx,S,rowsOf(e.k,e.y),0,8760);
+      t.globalCompositeOperation='source-over'; t.clearRect(0,0,S,S); t.drawImage(ic,0,0); t.fillStyle='#050404'; t.beginPath(); t.arc(S/2,S/2,M.r*0.36,0,7); t.fill();
+      t.globalCompositeOperation='destination-in'; t.drawImage(M.m,0,0); ctx.drawImage(tmp,M.x0+ox,M.y0+oy);
+      ctx.save(); ctx.globalCompositeOperation='lighten'; ctx.beginPath(); ctx.arc(M.cx+ox,M.cy+oy,M.r,0,7); ctx.clip(); ctx.drawImage(F2.img,ox,oy); ctx.restore(); });
+    [A,B].forEach(function(e,i){ var M=masks[i]; var primary = st.mode==='places' ? place(WORLD[e.k]).name : e.y; var secondary = st.mode==='places' ? place(WORLD[e.k]).country : place(WORLD[e.k]).name; chip(ctx,M.cx+ox,M.cy+oy+M.r*1.9,primary,secondary); });
+    ctx.fillStyle='#0b0a09'; ctx.fillRect(0,FH,W,BAND);
+    // labelled numbers for each eye, in the band, under its eye
+    [A,B].forEach(function(e,i){ var M=masks[i], t=DATA[e.k].years[e.y].stats; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+      var items=[[t.tmean.toFixed(1)+' °C','yearly mean'],[t.rain_mm.toLocaleString('en')+' mm','rain'],[t.day_h.toLocaleString('en')+' h','daylight']], colW=140, x0=M.cx+ox-colW;
+      items.forEach(function(it,j){ var x=x0+j*colW; ctx.fillStyle='#ece6d8'; ctx.font='400 34px "Cormorant Garamond", Georgia, serif'; ctx.fillText(it[0],x,FH+96); ctx.fillStyle='#9a9384'; ctx.font='400 13px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(it[1].toUpperCase(),x,FH+122); }); });
+    // caption band
+    ctx.textBaseline='alphabetic'; ctx.textAlign='center';
+    if(st.mode==='places'){ ctx.fillStyle='#f2d08a'; ctx.font='400 30px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(st.y.split('').join('\u2009'), W/2, FH+106); }
+    else { ctx.fillStyle='#ece6d8'; ctx.font='italic 400 48px "Cormorant Garamond", Georgia, serif'; ctx.fillText(place(WORLD[st.pp]).name, W/2, FH+100);
+      ctx.fillStyle='#f2d08a'; ctx.font='400 15px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(place(WORLD[st.pp]).country.toUpperCase().split('').join('\u200a'), W/2, FH+128); }
+    ctx.fillStyle='#5a544b'; ctx.font='400 18px "IBM Plex Mono", Menlo, monospace'; ctx.textAlign='left'; ctx.fillText('IRIS', 48, H-34); ctx.textAlign='right'; ctx.fillText('EXPERIAI.COM/LAB/IRIS', W-48, H-34); }
+  function renderPairOld(cv){ var W=cv.width, H=cv.height, ctx=cv.getContext('2d'); ctx.fillStyle='#0b0a09'; ctx.fillRect(0,0,W,H);
+    var A = st.mode==='places' ? {k:st.pa,y:st.y} : {k:st.pp,y:st.ya}, B = st.mode==='places' ? {k:st.pb,y:st.y} : {k:st.pp,y:st.yb};
+    var S=Math.round(W*0.36), cy=Math.round(H*0.43), xs=[Math.round(W*0.27), Math.round(W*0.73)];
+    [A,B].forEach(function(e,i){ ctx.save(); ctx.beginPath(); ctx.arc(xs[i],cy,S*0.485,0,7); ctx.clip(); ctx.drawImage(eyeCanvas(e.k,e.y,S), xs[i]-S/2, cy-S/2); ctx.restore(); });
+    ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+    [A,B].forEach(function(e,i){ var primary = st.mode==='places' ? nameCC(e.k) : e.y;
+      ctx.fillStyle='#ece6d8'; fitText(ctx,primary,'400 84px "Cormorant Garamond", Georgia, serif', S*1.15, 48); ctx.fillText(primary, xs[i], cy+S/2+112);
+      ctx.fillStyle='#9a9384'; ctx.font='400 30px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(statLine(e.k,e.y).toUpperCase().replace(/ /g,'\u2009'), xs[i], cy+S/2+165); });
+    var shared = st.mode==='places' ? st.y : nameCC(st.pp);
+    ctx.fillStyle='#f2d08a'; if(st.mode==='places'){ ctx.font='400 38px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(shared.split('').join('\u2009'), W/2, H-84); } else { ctx.font='italic 400 64px "Cormorant Garamond", Georgia, serif'; ctx.fillText(shared, W/2, H-80); }
+    ctx.fillStyle='#5a544b'; ctx.font='400 24px "IBM Plex Mono", Menlo, monospace'; ctx.textAlign='left'; ctx.fillText('IRIS', 72, H-60); ctx.textAlign='right'; ctx.fillText('EXPERIAI.COM/LAB/IRIS', W-72, H-60); }
+  // the single card: the opened eye as shown + a caption band
+  function renderSingle(cv,k){ var e=WORLD[k], stt=e.stats, W=1372, band=250, H=770+band; cv.width=W; cv.height=H; var ctx=cv.getContext('2d');
+    ctx.fillStyle='#0b0a09'; ctx.fillRect(0,0,W,H); ctx.drawImage(mcv,0,0);
+    ctx.textBaseline='alphabetic'; ctx.textAlign='left'; ctx.fillStyle='#ece6d8'; ctx.font='italic 400 76px "Cormorant Garamond", Georgia, serif'; ctx.fillText(place(e).name, 60, 770+112);
+    ctx.fillStyle='#9a9384'; ctx.font='400 22px "IBM Plex Mono", Menlo, monospace'; ctx.fillText((place(e).country+' · '+latlon(e)).toUpperCase(), 62, 770+156);
+    ctx.textAlign='right'; ctx.fillStyle='#f2d08a'; ctx.font='400 30px "IBM Plex Mono", Menlo, monospace'; ctx.fillText('2 0 2 5', W-60, 770+78);
+    statCols(ctx, W-60, 770+140, [[stt.tmean.toFixed(1)+' °C','yearly mean'],[stt.rain_mm.toLocaleString('en')+' mm','rain'],[stt.day_h.toLocaleString('en')+' h','daylight']], 40, 14);
+    ctx.fillStyle='#5a544b'; ctx.font='400 20px "IBM Plex Mono", Menlo, monospace'; ctx.textAlign='left'; ctx.fillText('IRIS', 62, H-40); ctx.textAlign='right'; ctx.fillText('EXPERIAI.COM/LAB/IRIS', W-60, H-40); }
+  function syncControls(){
+    document.querySelectorAll('.sentence .s').forEach(function(x){ x.hidden = x.dataset.for!==st.mode; });
+    document.getElementById('swap').textContent = st.mode==='places' ? 'Compare two years of one place instead' : 'Compare two places in one year instead';
+    var cy=common(st.pa,st.pb); if(cy.indexOf(st.y)<0) st.y=cy[cy.length-1];
+    var py=yearsOf(st.pp); if(py.indexOf(st.ya)<0) st.ya=py[0]; if(py.indexOf(st.yb)<0) st.yb=py[py.length-1];
+    fill(sel.pa,byName,st.pa,placeLabel); fill(sel.pb,byName,st.pb,placeLabel); fill(sel.py,cy,st.y);
+    fill(sel.pp,byName,st.pp,placeLabel); fill(sel.pya,py,st.ya); fill(sel.pyb,py,st.yb); }
+  function update(){ syncControls(); renderPair(cardCv); }
+  sel.pa.addEventListener('change',function(){ st.pa=sel.pa.value; update(); }); sel.pb.addEventListener('change',function(){ st.pb=sel.pb.value; update(); }); sel.py.addEventListener('change',function(){ st.y=sel.py.value; update(); });
+  sel.pp.addEventListener('change',function(){ st.pp=sel.pp.value; update(); }); sel.pya.addEventListener('change',function(){ st.ya=sel.pya.value; update(); }); sel.pyb.addEventListener('change',function(){ st.yb=sel.pyb.value; update(); });
+  document.getElementById('swap').addEventListener('click',function(){ st.mode = st.mode==='places' ? 'years' : 'places'; update(); });
+  update(); if(document.fonts && document.fonts.ready) document.fonts.ready.then(update); window.addEventListener('resize',function(){ Object.keys(sel).forEach(function(id){ size(sel[id]); }); });
+  // save: a PNG shown in a sheet (the Lab page downloads it)
+  var sheet=document.getElementById('sheet'), sheetImg=document.getElementById('sheet-img');
+  function showSheet(cv){ sheetImg.src=cv.toDataURL('image/png'); sheet.hidden=false; document.body.style.overflow='hidden'; sheet.querySelector('.sheetbox').focus({preventScroll:true}); }
+  function closeSheet(){ sheet.hidden=true; if(modal.hidden) document.body.style.overflow=''; }
+  sheet.querySelectorAll('[data-close-sheet]').forEach(function(el){ el.addEventListener('click',closeSheet); });
+  document.addEventListener('keydown',function(ev){ if(ev.key==='Escape' && !sheet.hidden) closeSheet(); });
+  document.getElementById('save').addEventListener('click',function(){ var cv=document.createElement('canvas'); renderPair(cv); showSheet(cv); });
+  document.getElementById('m-share').addEventListener('click',function(){ var cv=document.createElement('canvas'); renderSingle(cv,modal.dataset.key); showSheet(cv); });
+})();
+</script>
+
+</body>
+</html>
