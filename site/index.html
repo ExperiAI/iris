@@ -34,7 +34,7 @@
   .reveal p { margin:0; font-size:clamp(1.4rem,3.4vw,2.6rem); line-height:1.15; }
   .reveal p em { font-style:italic; color:var(--accent-ink); }
   .reveal .count { justify-self:center; font-size:clamp(1rem,1.6vw,1.35rem); font-style:italic; color:var(--ink); background:rgba(11,10,9,.58); border:1px solid rgba(236,230,216,.1); border-radius:6px; padding:.4rem .95rem .45rem; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
-  .reveal .count em { font-style:italic; color:var(--ink); display:inline-block; min-width:5.5em; text-align:center; transition:opacity .28s ease; } .reveal .count em.sw { opacity:0; }
+  .reveal .count em { font-style:italic; color:var(--ink); display:inline-block; min-width:5.5em; text-align:center; transition:opacity .08s ease; } .reveal .count em.sw { opacity:.35; }   /* a month lasts ~250 ms at the reveal's speed: the swap must be shorter and never blank */
   .reveal .line, .reveal small { opacity:0; } .reveal.on .line, .reveal.on small { opacity:1; } .reveal.on .count { opacity:0; }
   .reveal small { display:block; align-self:end; margin-top:.6rem; font-family:var(--mono); font-size:.68rem; letter-spacing:.3em; text-indent:.3em; color:var(--accent-ink); grid-area:2/1; }
   .caps { position:absolute; inset:0; pointer-events:none; }
@@ -309,7 +309,7 @@
   var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'], mdays=[31,28,31,30,31,30,31,31,30,31,30,31];
   function dateOf(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } return (d+1)+' '+months[m]; }
   var cMonth=document.getElementById('count-month'), curMonth=0, swapping=false;
-  function count(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } if(m===curMonth||swapping) return; swapping=true; cMonth.classList.add('sw'); setTimeout(function(){ cMonth.textContent=MONTHS[m]; curMonth=m; cMonth.classList.remove('sw'); swapping=false; },280); }
+  function count(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } if(m===curMonth||swapping) return; swapping=true; cMonth.classList.add('sw'); setTimeout(function(){ cMonth.textContent=MONTHS[m]; curMonth=m; cMonth.classList.remove('sw'); swapping=false; },80); }
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---- stage 0: eyes drawing inside a face
