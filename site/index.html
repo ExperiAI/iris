@@ -85,19 +85,31 @@
   .eye .s { font-family:var(--mono); font-size:.58rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); line-height:1.6; }
   .eye .s span { white-space:nowrap; } .eye .s span + span::before { content:'·'; margin:0 .45em; color:var(--line); }
   /* yours */
-  .card { width:100%; max-width:100%; aspect-ratio:1256/750; display:block; border-radius:8px; background:#000; border:1px solid var(--line); }
-  .sentence { font-size:clamp(1.5rem,3vw,2.3rem); line-height:1.5; }
+  .cardwrap { max-width:56rem; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--surface); }
+  .cardface { position:relative; } .card { width:100%; max-width:100%; aspect-ratio:1256/520; display:block; background:#000; }
+  .fchip { position:absolute; top:76%; transform:translateX(-50%); display:grid; justify-items:center; gap:.05em; padding:.45em .9em .5em; border-radius:.35em; background:rgba(11,10,9,.62); border:1px solid rgba(236,230,216,.12); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); font-size:clamp(.55rem,1.1vw,.95rem); white-space:nowrap; }
+  #chip-a { left:18.3%; } #chip-b { left:81.6%; }
+  .fchip b { font-weight:400; font-style:italic; font-size:2.2em; line-height:1.1; color:var(--ink); } .fchip small { font-family:var(--mono); font-size:.8em; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-ink); }
+  .cardband { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:1rem; padding:1rem 1.3rem 1.1rem; }
+  .cstats { display:flex; gap:clamp(.8rem,2.4vw,1.8rem); } .cstats:last-child { justify-content:flex-end; }
+  .cstats div { display:grid; gap:.15rem; text-align:center; } .cstats b { font-weight:400; font-size:clamp(1.05rem,2vw,1.55rem); line-height:1; color:var(--ink); font-variant-numeric:tabular-nums; } .cstats small { font-family:var(--mono); font-size:.55rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  .cmid { text-align:center; } .cmid .yr { font-family:var(--mono); font-size:clamp(.9rem,1.6vw,1.2rem); letter-spacing:.3em; text-indent:.3em; color:var(--accent-ink); } .cmid .pl { font-style:italic; font-size:clamp(1.2rem,2.2vw,1.7rem); color:var(--ink); line-height:1; } .cmid .cc { display:block; font-family:var(--mono); font-size:.55rem; letter-spacing:.2em; color:var(--accent-ink); margin-top:.3rem; }
+  @media (max-width:700px){ .cardband { grid-template-columns:1fr; gap:.6rem; } .cstats:last-child { justify-content:flex-start; } .cmid { order:-1; text-align:left; } }
+  .yrow { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:.5rem; }
+  .modes { display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:.18rem; gap:.18rem; }
+  .modes button { font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); background:none; border:0; border-radius:999px; padding:.42rem .85rem; cursor:pointer; }
+  .modes button[aria-pressed="true"] { color:var(--ground); background:var(--ink); } .modes button:not([aria-pressed="true"]):hover { color:var(--ink); }
+  .modes button:focus-visible { outline:1px solid var(--accent); outline-offset:2px; }
+  .sentence { font-size:clamp(1.7rem,3.6vw,2.9rem); line-height:1.35; margin:0 0 1.4rem; }
   .sentence .s { display:inline; } .sentence .s[hidden] { display:none; }
   .sentence .w { color:var(--muted); margin:0 .45em; } .sentence .nb { white-space:nowrap; }
   .sel { position:relative; display:inline-block; }
-  .sel select { font:inherit; font-style:italic; color:var(--accent-ink); background:none; border:0; border-bottom:1px solid var(--line); border-radius:0; padding:0 1.15em .05em 0; appearance:none; -webkit-appearance:none; cursor:pointer; max-width:100%; }
-  .sel select:hover { border-bottom-color:var(--accent); } .sel select:focus-visible { outline:none; border-bottom-color:var(--accent-ink); }
-  .sel::after { content:''; position:absolute; right:.25em; top:50%; width:.42em; height:.42em; border-right:1.5px solid var(--accent); border-bottom:1.5px solid var(--accent); transform:translateY(-70%) rotate(45deg); pointer-events:none; }
+  .sel select { font:inherit; font-style:italic; color:var(--accent-ink); background:none; border:0; border-radius:0; padding:0 .9em .08em 0; appearance:none; -webkit-appearance:none; cursor:pointer; max-width:100%; }
+  .sel::before { content:''; position:absolute; left:0; right:.9em; bottom:.02em; border-bottom:1px dotted rgba(242,208,138,.45); pointer-events:none; } .sel:hover::before { border-bottom:1px solid var(--accent); } .sel:focus-within::before { border-bottom:1px solid var(--accent-ink); }
+  .sel select:focus-visible { outline:none; }
+  .sel::after { content:''; position:absolute; right:.16em; top:50%; width:.32em; height:.32em; border-right:1.5px solid var(--accent); border-bottom:1.5px solid var(--accent); transform:translateY(-70%) rotate(45deg); pointer-events:none; opacity:.85; }
   .sel select option { font-style:normal; font-size:1rem; color:var(--ink); background:var(--surface); }
-  .swap { font:inherit; font-size:1rem; color:var(--muted); background:none; border:0; border-bottom:1px solid var(--line); padding:0 0 .05rem; cursor:pointer; }
-  .swap:hover { color:var(--ink); border-color:var(--muted); }
   .actions { display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap; }
-  .swapline { margin:.2rem 0 1.2rem; }
   .save { font:inherit; font-size:1.05rem; color:var(--ground); background:var(--ink); border:0; border-radius:999px; padding:.6rem 1.3rem .65rem; cursor:pointer; }
   .save:hover { background:#fff; } .save:focus-visible { outline:1px solid var(--accent); outline-offset:2px; }
   .mtext .actions { padding-top:1.1rem; border-top:1px solid var(--line); }
@@ -201,13 +213,16 @@
 
   <!-- 2 · yours: the card -->
   <section id="yours">
-    <header><span class="k">Yours</span><h2>Two eyes. Choose them.</h2></header>
+    <div class="yrow"><span class="k">Yours</span><div class="modes" role="group" aria-label="What to compare"><button type="button" data-mode="places" aria-pressed="true">Two places</button><button type="button" data-mode="years" aria-pressed="false">Two years</button></div></div>
     <div class="sentence" aria-label="Choose the two eyes">
       <span class="s" data-for="places"><span class="sel"><select id="pa" aria-label="Left eye, place"></select></span><span class="nb"><span class="w">and</span><span class="sel"><select id="pb" aria-label="Right eye, place"></select></span></span><span class="nb"><span class="w">in</span><span class="sel"><select id="py" aria-label="Year"></select></span></span></span>
       <span class="s" data-for="years" hidden><span class="sel"><select id="pp" aria-label="Place"></select></span><span class="nb"><span class="w">in</span><span class="sel"><select id="pya" aria-label="Left eye, year"></select></span></span><span class="nb"><span class="w">and</span><span class="sel"><select id="pyb" aria-label="Right eye, year"></select></span></span></span>
     </div>
-    <p class="swapline"><button type="button" class="swap" id="swap">Compare two years of one place instead</button></p>
-    <canvas class="card" id="card" width="1256" height="750" aria-label="Your card: two eyes in one face"></canvas>
+    <div class="cardwrap">
+      <div class="cardface"><canvas class="card" id="card" width="2512" height="1040" aria-label="Your two eyes in one face"></canvas>
+        <div class="fchip" id="chip-a"><b></b><small></small></div><div class="fchip" id="chip-b"><b></b><small></small></div></div>
+      <div class="cardband"><div class="cstats" id="stats-a"></div><div class="cmid" id="card-mid"></div><div class="cstats" id="stats-b"></div></div>
+    </div>
     <div class="actions"><span class="sharewrap"><button type="button" class="save" id="save" aria-haspopup="menu">Share</button><div class="sharemenu" id="save-menu" role="menu" hidden></div></span></div>
   </section>
 
@@ -388,9 +403,9 @@
   // the open eye: draws itself once as a year, with the place's story
   var modal=document.getElementById('modal'), mcv=document.getElementById('m-eye'), mctx=mcv.getContext('2d'), mraf=0, lastFocus=null, CUR=null;
   // the three eye plates: the image, and the lens (red = the plate's shading ×100, alpha = disc under the lids)
-  Object.keys(MACRO).forEach(function(k){ var m=MACRO[k]; m.img=new Image(); m.img.src=m.plate; var li=new Image(); li.onload=function(){ var c=document.createElement('canvas'); c.width=c.height=m.D; var x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(li,0,0); m.lensData=x.getImageData(0,0,m.D,m.D).data;
-      var mk=document.createElement('canvas'); mk.width=mk.height=m.D; var mx=mk.getContext('2d'), id=mx.createImageData(m.D,m.D); for(var i=0;i<m.D*m.D;i++){ id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=255; id.data[i*4+3]=m.lensData[i*4+3]; } mx.putImageData(id,0,0); m.maskCv=mk; }; li.src=m.lens;
-    m.iris=document.createElement('canvas'); m.iris.width=m.iris.height=m.D; m.tmp=document.createElement('canvas'); m.tmp.width=m.tmp.height=m.D; });
+  function loadPlate(m,done){ if(m.img){ if(m.lensData) done(); return; } m.img=new Image(); m.img.onload=function(){ if(m.lensData) done(); }; m.img.src=m.plate; var li=new Image(); li.onload=function(){ var c=document.createElement('canvas'); c.width=c.height=m.D; var x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(li,0,0); m.lensData=x.getImageData(0,0,m.D,m.D).data;
+      var mk=document.createElement('canvas'); mk.width=mk.height=m.D; var mx=mk.getContext('2d'), id=mx.createImageData(m.D,m.D); for(var i=0;i<m.D*m.D;i++){ id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=255; id.data[i*4+3]=m.lensData[i*4+3]; } mx.putImageData(id,0,0); m.maskCv=mk; if(m.img.complete) done(); }; li.src=m.lens;
+    m.iris=document.createElement('canvas'); m.iris.width=m.iris.height=m.D; m.tmp=document.createElement('canvas'); m.tmp.width=m.tmp.height=m.D; }
   // where this place sits among the 25: a line from the lowest to the highest, the others as faint ticks, this one in gold
   var EXT={}; ['tmean','rain_mm','day_h','tmin','tmax'].forEach(function(f){ var v=keys.map(function(q){ return WORLD[q].stats[f]; }); EXT[f]={min:Math.min.apply(null,v),max:Math.max.apply(null,v)}; });
   function pct(v,lo,hi){ return ((v-lo)/(hi-lo)*100).toFixed(1)+'%'; }
@@ -406,7 +421,7 @@
          + row('Rain', scaleRow(k,'rain_mm',EXT.rain_mm.min,EXT.rain_mm.max), st.rain_mm.toLocaleString('en')+' mm', extreme(k,'rain_mm','wettest','driest'))
          + row('Light', scaleRow(k,'day_h',EXT.day_h.min,EXT.day_h.max), st.day_h.toLocaleString('en')+' h', extreme(k,'day_h','most light','least light')); }
   var PARCHED=/parched/.test(location.hash);   // experimental fifth plate, for review only: open the page with #parched
-  function wetness(rain){ return rain<100&&PARCHED&&MACRO.parched?'parched':rain<800?'dry':rain<2000?'brim':rain<3000?'tear':'weep'; }
+  function wetness(rain){ return rain<100&&PARCHED&&(MACRO.drier||MACRO.parched)?(MACRO.drier?'drier':'parched'):rain<800?'dry':rain<2000?'brim':rain<3000?'tear':'weep'; }
   function composePlate(m){ if(!m.lensData) return; var D=m.D, ic=m.iris.getContext('2d',{willReadFrequently:true}), id=ic.getImageData(0,0,D,D), px=id.data, L=m.lensData, pr=m.pupil, c=D/2;
     for(var y=0;y<D;y++){ for(var x=0;x<D;x++){ var i=(y*D+x)*4, sh=L[i]/100, a=L[i+3]; if(a===0){ px[i+3]=0; continue; }
       var dx=x-c, dy=y-c; if(dx*dx+dy*dy<pr*pr){ px[i]=6; px[i+1]=5; px[i+2]=5; } else { px[i]=Math.min(255,px[i]*sh); px[i+1]=Math.min(255,px[i+1]*sh); px[i+2]=Math.min(255,px[i+2]*sh); } px[i+3]=a; } }
@@ -418,10 +433,10 @@
     document.getElementById('m-why').innerHTML=WHY[k]||'';
     document.getElementById('m-nums').innerHTML=stats(k);
     modal.dataset.key=k; modal.hidden=false; document.body.style.overflow='hidden';
-    var m=MACRO[wetness(st.rain_mm)]; CUR=m; var ic=m.iris.getContext('2d',{willReadFrequently:true}), D=m.D, p=0; paper(ic,D); cancelAnimationFrame(mraf);
-    mctx.drawImage(m.img,0,0,mcv.width,mcv.height);
-    if(reduce){ drawEye(ic,D,e.rows,0,8760); composePlate(m); }
-    else (function tick(){ if(CUR!==m) return; if(p<8760){ drawEye(ic,D,e.rows,p,p+72); p+=72; composePlate(m); mraf=requestAnimationFrame(tick); } else { composePlate(m); } })();
+    var m=MACRO[wetness(st.rain_mm)]; CUR=m; cancelAnimationFrame(mraf); if(mcv.width!==m.w){ mcv.width=hov.width=m.w; mcv.height=hov.height=m.h; } mctx.fillStyle='#000'; mctx.fillRect(0,0,mcv.width,mcv.height);
+    loadPlate(m,function(){ if(CUR!==m) return; var ic=m.iris.getContext('2d',{willReadFrequently:true}), D=m.D, p=0; paper(ic,D); mctx.drawImage(m.img,0,0,mcv.width,mcv.height);
+      if(reduce){ drawEye(ic,D,e.rows,0,8760); composePlate(m); }
+      else (function tick(){ if(CUR!==m) return; if(p<8760){ drawEye(ic,D,e.rows,p,p+72); p+=72; composePlate(m); mraf=requestAnimationFrame(tick); } else { composePlate(m); } })(); });
     modal.querySelector('.panel').focus({preventScroll:true});
   }
   // drill-down: the day under the cursor (one fibre = one day)
@@ -460,15 +475,15 @@
   function fitText(ctx,text,font,maxW,minPx){ var m=/(\d+)px/.exec(font), px=+m[1]; for(;;){ ctx.font=font.replace(/\d+px/,px+'px'); if(ctx.measureText(text).width<=maxW||px<=minPx) return; px-=2; } }
   // the pair card: the whole face, the two irises set into the eyes, a caption band below (1456×1092, 4:3)
   var F2={img:new Image(), ready:false, masks:null}; F2.img.onload=function(){ F2.ready=true; if(typeof update==='function') update(); }; F2.img.src=FACE2.src;
-  var GROW2=[1.28,1.22];
+  var GROW2=[1.28,1.22], K2=FACE2.k||1, KR=2;   // K2: the face image is K2× the base units; KR: render scale of every card canvas
   var WETIMG={};   // patch images, loaded the first time a level is needed
   function wetImg(key){ var w=WETIMG[key]; if(w) return w.ready?w.img:null; var img=new Image(); w=WETIMG[key]={img:img,ready:false}; img.onload=function(){ w.ready=true; update(); }; img.src=WET[key].src; return null; }
   var FC={key:null,cv:null,masks:null};
   function faceCanvas(levels){ // the card face with each eye as wet as its rain: base + patch per eye
-    var key=levels.join('|'); if(FC.key===key) return FC.cv; var o=document.createElement('canvas'); o.width=FACE2.w; o.height=FACE2.h; var oc=o.getContext('2d',{willReadFrequently:true}); oc.drawImage(F2.img,0,0);
-    var pending=false; levels.forEach(function(lv,i){ if(lv==='dry') return; var k='LR'[i]+'-'+lv, img=wetImg(k); if(img) oc.drawImage(img,WET[k].x,WET[k].y); else pending=true; });
+    var key=levels.join('|'); if(FC.key===key) return FC.cv; var o=document.createElement('canvas'); o.width=FACE2.w*KR; o.height=FACE2.h*KR; var oc=o.getContext('2d'); oc.scale(KR,KR); oc.drawImage(F2.img,0,0,FACE2.w,FACE2.h);
+    var pending=false; levels.forEach(function(lv,i){ if(lv==='dry') return; var k='LR'[i]+'-'+lv, img=wetImg(k); if(img) oc.drawImage(img,WET[k].x,WET[k].y,WET[k].w,WET[k].h); else pending=true; });
     FC.key=pending?null:key; FC.cv=o; FC.masks=null; return o; }   // a face still waiting for a patch is drawn but not kept
-  function faceMasks(fc){ if(FC.masks) return FC.masks; var oc=fc.getContext('2d',{willReadFrequently:true});
+  function faceMasks(fc){ if(FC.masks) return FC.masks; var b=document.createElement('canvas'); b.width=FACE2.w; b.height=FACE2.h; var oc=b.getContext('2d',{willReadFrequently:true}); oc.drawImage(fc,0,0,FACE2.w,FACE2.h);   // masks are found at base resolution
     FC.masks=FACE2.eyes.map(function(e,i){ var r=e[2], S=Math.round(r*2*GROW2[i]), x0=Math.round(e[0]-S/2), y0=Math.round(e[1]-S/2), src=oc.getImageData(x0,y0,S,S).data, a=new Float32Array(S*S), k;
       for(k=0;k<S*S;k++){ var g=(src[k*4]+src[k*4+1]+src[k*4+2])/3, px=k%S-(e[0]-x0), py=Math.floor(k/S)-(e[1]-y0), d=Math.hypot(px,py); a[k]=Math.max(0,Math.min(1,(46-g)/14))*Math.max(0,Math.min(1,(r*1.04-d)/1.5)); }
       var m=document.createElement('canvas'); m.width=m.height=S; var md=m.getContext('2d').createImageData(S,S);
@@ -484,15 +499,16 @@
     ctx.textAlign='center'; ctx.textBaseline='alphabetic'; ctx.fillStyle='#ece6d8'; ctx.font='italic 400 40px "Cormorant Garamond", Georgia, serif'; ctx.fillText(primary,cx,y+44);
     ctx.fillStyle='#f2d08a'; ctx.font='400 15px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(secondary.toUpperCase().split('').join('\u200a'),cx,y+70); }
   var CROP={x:100,y:120,w:1256,h:520};   // the eye band of the face: the eyes are the picture
-  function renderPair(cv){ var FW=CROP.w, FH=CROP.h, BAND=230, W=FW, H=FH+BAND, ox=-CROP.x, oy=-CROP.y; if(cv.width!==W){ cv.width=W; cv.height=H; } var ctx=cv.getContext('2d');
+  function renderPair(cv,full){ var FW=CROP.w, FH=CROP.h, BAND=full?230:0, W=FW, H=FH+BAND, ox=-CROP.x, oy=-CROP.y; if(cv.width!==W*KR||cv.height!==H*KR){ cv.width=W*KR; cv.height=H*KR; } var ctx=cv.getContext('2d'); ctx.setTransform(KR,0,0,KR,0,0);
     ctx.fillStyle='#0b0a09'; ctx.fillRect(0,0,W,H); if(!F2.ready) return;
     var A = st.mode==='places' ? {k:st.pa,y:st.y} : {k:st.pp,y:st.ya}, B = st.mode==='places' ? {k:st.pb,y:st.y} : {k:st.pp,y:st.yb};
-    var face=faceCanvas([A,B].map(function(e){ return wetness(DATA[e.k].years[e.y].stats.rain_mm); })); ctx.drawImage(face,ox,oy);
+    var face=faceCanvas([A,B].map(function(e){ return wetness(DATA[e.k].years[e.y].stats.rain_mm); })); ctx.drawImage(face,ox,oy,FACE2.w,FACE2.h);
     var masks=faceMasks(face), tmp=document.createElement('canvas');
-    [A,B].forEach(function(e,i){ var M=masks[i], S=M.S; tmp.width=tmp.height=S; var t=tmp.getContext('2d'); var ic=document.createElement('canvas'); ic.width=ic.height=S; var icx=ic.getContext('2d'); paper(icx,S); drawEye(icx,S,rowsOf(e.k,e.y),0,8760);
-      t.globalCompositeOperation='source-over'; t.clearRect(0,0,S,S); t.drawImage(ic,0,0); t.fillStyle='#050404'; t.beginPath(); t.arc(S/2,S/2,M.r*0.36,0,7); t.fill();
-      t.globalCompositeOperation='destination-in'; t.drawImage(M.m,0,0); ctx.drawImage(tmp,M.x0+ox,M.y0+oy);
-      ctx.save(); ctx.globalCompositeOperation='lighten'; ctx.beginPath(); ctx.arc(M.cx+ox,M.cy+oy,M.r,0,7); ctx.clip(); ctx.drawImage(face,ox,oy); ctx.restore(); });
+    [A,B].forEach(function(e,i){ var M=masks[i], S=M.S, SK=S*KR; tmp.width=tmp.height=SK; var t=tmp.getContext('2d'); var ic=document.createElement('canvas'); ic.width=ic.height=SK; var icx=ic.getContext('2d'); paper(icx,SK); drawEye(icx,SK,rowsOf(e.k,e.y),0,8760);
+      t.globalCompositeOperation='source-over'; t.clearRect(0,0,SK,SK); t.drawImage(ic,0,0); t.fillStyle='#050404'; t.beginPath(); t.arc(SK/2,SK/2,M.r*0.36*KR,0,7); t.fill();
+      t.globalCompositeOperation='destination-in'; t.drawImage(M.m,0,0,SK,SK); ctx.drawImage(tmp,M.x0+ox,M.y0+oy,S,S);
+      ctx.save(); ctx.globalCompositeOperation='lighten'; ctx.beginPath(); ctx.arc(M.cx+ox,M.cy+oy,M.r,0,7); ctx.clip(); ctx.drawImage(face,ox,oy,FACE2.w,FACE2.h); ctx.restore(); });
+    if(!full) return;
     [A,B].forEach(function(e,i){ var M=masks[i]; var primary = st.mode==='places' ? place(WORLD[e.k]).name : e.y; var secondary = st.mode==='places' ? place(WORLD[e.k]).country : place(WORLD[e.k]).name; chip(ctx,M.cx+ox,M.cy+oy+M.r*1.9,primary,secondary); });
     ctx.fillStyle='#0b0a09'; ctx.fillRect(0,FH,W,BAND);
     // labelled numbers for each eye, in the band, under its eye
@@ -517,8 +533,8 @@
     ctx.fillStyle='#f2d08a'; if(st.mode==='places'){ ctx.font='400 38px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(shared.split('').join('\u2009'), W/2, H-84); } else { ctx.font='italic 400 64px "Cormorant Garamond", Georgia, serif'; ctx.fillText(shared, W/2, H-80); }
     ctx.fillStyle='#5a544b'; ctx.font='400 24px "IBM Plex Mono", Menlo, monospace'; ctx.textAlign='left'; ctx.fillText('IRIS', 72, H-60); ctx.textAlign='right'; ctx.fillText('EXPERIAI.COM/LAB/IRIS', W-72, H-60); }
   // the single card: the opened eye as shown + a caption band
-  function renderSingle(cv,k){ var e=WORLD[k], stt=e.stats, W=1372, band=250, H=770+band; cv.width=W; cv.height=H; var ctx=cv.getContext('2d');
-    ctx.fillStyle='#0b0a09'; ctx.fillRect(0,0,W,H); ctx.drawImage(mcv,0,0);
+  function renderSingle(cv,k){ var e=WORLD[k], stt=e.stats, W=1372, band=250, H=770+band; cv.width=W*KR; cv.height=H*KR; var ctx=cv.getContext('2d'); ctx.setTransform(KR,0,0,KR,0,0);
+    ctx.fillStyle='#0b0a09'; ctx.fillRect(0,0,W,H); ctx.drawImage(mcv,0,0,W,770);
     ctx.textBaseline='alphabetic'; ctx.textAlign='left'; ctx.fillStyle='#ece6d8'; ctx.font='italic 400 76px "Cormorant Garamond", Georgia, serif'; ctx.fillText(place(e).name, 60, 770+112);
     ctx.fillStyle='#9a9384'; ctx.font='400 22px "IBM Plex Mono", Menlo, monospace'; ctx.fillText((place(e).country+' · '+latlon(e)).toUpperCase(), 62, 770+156);
     ctx.textAlign='right'; ctx.fillStyle='#f2d08a'; ctx.font='400 30px "IBM Plex Mono", Menlo, monospace'; ctx.fillText('2 0 2 5', W-60, 770+78);
@@ -526,15 +542,20 @@
     ctx.fillStyle='#5a544b'; ctx.font='400 20px "IBM Plex Mono", Menlo, monospace'; ctx.textAlign='left'; ctx.fillText('IRIS', 62, H-40); ctx.textAlign='right'; ctx.fillText('EXPERIAI.COM/LAB/IRIS', W-60, H-40); }
   function syncControls(){
     document.querySelectorAll('.sentence .s').forEach(function(x){ x.hidden = x.dataset.for!==st.mode; });
-    document.getElementById('swap').textContent = st.mode==='places' ? 'Compare two years of one place instead' : 'Compare two places in one year instead';
+    document.querySelectorAll('.modes button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.mode===st.mode ? 'true' : 'false'); });
     var cy=common(st.pa,st.pb); if(cy.indexOf(st.y)<0) st.y=cy[cy.length-1];
     var py=yearsOf(st.pp); if(py.indexOf(st.ya)<0) st.ya=py[0]; if(py.indexOf(st.yb)<0) st.yb=py[py.length-1];
     fill(sel.pa,byName,st.pa,placeLabel); fill(sel.pb,byName,st.pb,placeLabel); fill(sel.py,cy,st.y);
     fill(sel.pp,byName,st.pp,placeLabel); fill(sel.pya,py,st.ya); fill(sel.pyb,py,st.yb); }
-  function update(){ syncControls(); renderPair(cardCv); }
+  function cardText(){ var A = st.mode==='places' ? {k:st.pa,y:st.y} : {k:st.pp,y:st.ya}, B = st.mode==='places' ? {k:st.pb,y:st.y} : {k:st.pp,y:st.yb};
+    [A,B].forEach(function(e,i){ var pl=place(WORLD[e.k]), t=DATA[e.k].years[e.y].stats, chip=document.getElementById(i?'chip-b':'chip-a');
+      chip.querySelector('b').textContent = st.mode==='places' ? pl.name : e.y; chip.querySelector('small').textContent = st.mode==='places' ? pl.country : pl.name;
+      document.getElementById(i?'stats-b':'stats-a').innerHTML = [[t.tmean.toFixed(1)+' °C','yearly mean'],[t.rain_mm.toLocaleString('en')+' mm','rain'],[t.day_h.toLocaleString('en')+' h','daylight']].map(function(it){ return '<div><b>'+it[0]+'</b><small>'+it[1]+'</small></div>'; }).join(''); });
+    document.getElementById('card-mid').innerHTML = st.mode==='places' ? '<span class="yr">'+st.y+'</span>' : '<span class="pl">'+place(WORLD[st.pp]).name+'</span><span class="cc">'+place(WORLD[st.pp]).country.toUpperCase()+'</span>'; }
+  function update(){ syncControls(); renderPair(cardCv,false); cardText(); }
   sel.pa.addEventListener('change',function(){ st.pa=sel.pa.value; update(); }); sel.pb.addEventListener('change',function(){ st.pb=sel.pb.value; update(); }); sel.py.addEventListener('change',function(){ st.y=sel.py.value; update(); });
   sel.pp.addEventListener('change',function(){ st.pp=sel.pp.value; update(); }); sel.pya.addEventListener('change',function(){ st.ya=sel.pya.value; update(); }); sel.pyb.addEventListener('change',function(){ st.yb=sel.pyb.value; update(); });
-  document.getElementById('swap').addEventListener('click',function(){ st.mode = st.mode==='places' ? 'years' : 'places'; update(); });
+  document.querySelectorAll('.modes button').forEach(function(b){ b.addEventListener('click',function(){ st.mode=b.dataset.mode; update(); }); });
   update(); if(document.fonts && document.fonts.ready) document.fonts.ready.then(update); window.addEventListener('resize',function(){ Object.keys(sel).forEach(function(id){ size(sel[id]); }); });
   // share: the PNG goes straight to the system share sheet where the browser has one (phones, Safari, Chrome on Mac);
   // otherwise a small menu under the button: download, copy the image, copy the link. No preview step.
@@ -555,7 +576,8 @@
     function close(){ menu.hidden=true; btn.setAttribute('aria-expanded','false'); document.removeEventListener('click',away,true); document.removeEventListener('keydown',esc); }
     function away(ev){ if(!menu.contains(ev.target) && ev.target!==btn) close(); } function esc(ev){ if(ev.key==='Escape'){ close(); btn.focus(); } }
     setTimeout(function(){ document.addEventListener('click',away,true); document.addEventListener('keydown',esc); },0); }
-  document.getElementById('save').addEventListener('click',function(){ var m=document.getElementById('save-menu'); if(!m.hidden){ m.hidden=true; return; } shareFlow(this,m,renderPair); });
+  document.getElementById('save').addEventListener('click',function(){ var m=document.getElementById('save-menu'); if(!m.hidden){ m.hidden=true; return; } shareFlow(this,m,function(cv){ renderPair(cv,true); }); });
+  window.__iris={renderPair:renderPair, renderSingle:renderSingle};
   document.getElementById('m-share').addEventListener('click',function(){ var m=document.getElementById('m-share-menu'); if(!m.hidden){ m.hidden=true; return; } var k=modal.dataset.key; shareFlow(this,m,function(cv){ renderSingle(cv,k); },k); });
 })();
 </script>
