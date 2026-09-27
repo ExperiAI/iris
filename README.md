@@ -24,3 +24,13 @@ Biasca every decade), the face plates and the four macro eye plates.
 
 The alias is a separate step on every prod deploy (see the Lab CLAUDE.md). Verify on https://iris.experiai.com,
 never on the deployment URL.
+
+## State (2026-09-27)
+
+Live and listed in the Lab gallery (website PR #16). Wetness levels by yearly rain: <400 mm drier, <900 dry,
+<1400 brimming, <2200 a tear, above weeping; one rule for the hero, the card and the opened eye. The month
+marker during the reveal is the word (Diego's pick); `#months=strip` and `#months=none` show the alternatives.
+
+Open: this repo has no GitHub remote yet (creating `ExperiAI/iris` was refused to the session as a public
+surface; create it and `git remote add origin github-experiai:ExperiAI/iris.git`). Announcement copy is in
+`~/AI-Drafts/2026-09-27/iris-launch-linkedin.txt`. A film trailer of the reveal is optional.
