@@ -34,7 +34,11 @@
   .reveal p { margin:0; font-size:clamp(1.4rem,3.4vw,2.6rem); line-height:1.15; }
   .reveal p em { font-style:italic; color:var(--accent-ink); }
   .reveal .count { justify-self:center; font-size:clamp(1rem,1.6vw,1.35rem); font-style:italic; color:var(--ink); background:rgba(11,10,9,.58); border:1px solid rgba(236,230,216,.1); border-radius:6px; padding:.4rem .95rem .45rem; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
-  .reveal .count em { font-style:italic; color:var(--ink); display:inline-block; min-width:5.5em; text-align:center; transition:opacity .08s ease; } .reveal .count em.sw { opacity:.35; }   /* a month lasts ~250 ms at the reveal's speed: the swap must be shorter and never blank */
+  .reveal .count em { font-style:italic; color:var(--ink); display:inline-block; min-width:5.5em; text-align:center; transition:opacity .08s ease; } .reveal .count em.sw { opacity:.35; }
+  .reveal .count .strip { display:none; font-family:var(--mono); font-style:normal; font-size:.72em; letter-spacing:0; gap:.55em; }
+  .reveal .count .strip i { font-style:normal; color:var(--ink); opacity:.28; transition:opacity .25s ease, color .25s ease; } .reveal .count .strip i.on { opacity:1; color:var(--accent-ink); } .reveal .count .strip i.done { opacity:.6; }
+  body.months-strip .reveal .count em { display:none; } body.months-strip .reveal .count .strip { display:inline-flex; }
+  body.months-none .reveal .count { visibility:hidden; }   /* a month lasts ~250 ms at the reveal's speed: the swap must be shorter and never blank */
   .reveal .line, .reveal small { opacity:0; } .reveal.on .line, .reveal.on small { opacity:1; } .reveal.on .count { opacity:0; }
   .reveal small { display:block; align-self:end; margin-top:.6rem; font-family:var(--mono); font-size:.68rem; letter-spacing:.3em; text-indent:.3em; color:var(--accent-ink); grid-area:2/1; }
   .caps { position:absolute; inset:0; pointer-events:none; }
@@ -104,12 +108,13 @@
   .sentence { font-size:clamp(1.7rem,3.6vw,2.9rem); line-height:1.35; margin:0 0 1.4rem; }
   .sentence .s { display:inline; } .sentence .s[hidden] { display:none; }
   .sentence .w { color:var(--muted); margin:0 .45em; } .sentence .nb { white-space:nowrap; }
-  .sel { position:relative; display:inline-block; }
-  .sel select { font:inherit; font-style:italic; color:var(--accent-ink); background:none; border:0; border-radius:0; padding:0 .9em .08em 0; appearance:none; -webkit-appearance:none; cursor:pointer; max-width:100%; }
+  .sel { position:relative; display:inline-block; padding:0 .9em .08em 0; font-style:italic; color:var(--accent-ink); white-space:nowrap; }
+  .sel .v { pointer-events:none; }
+  .sel select { position:absolute; inset:0; width:100%; height:100%; opacity:0; font:400 16px/1.2 -apple-system, system-ui, sans-serif; cursor:pointer; appearance:auto; -webkit-appearance:menulist; margin:0; }
   .sel::before { content:''; position:absolute; left:0; right:.9em; bottom:.02em; border-bottom:1px dotted rgba(242,208,138,.45); pointer-events:none; } .sel:hover::before { border-bottom:1px solid var(--accent); } .sel:focus-within::before { border-bottom:1px solid var(--accent-ink); }
   .sel select:focus-visible { outline:none; }
   .sel::after { content:''; position:absolute; right:.16em; top:50%; width:.32em; height:.32em; border-right:1.5px solid var(--accent); border-bottom:1.5px solid var(--accent); transform:translateY(-70%) rotate(45deg); pointer-events:none; opacity:.85; }
-  .sel select option { font-style:normal; font-size:1rem; color:var(--ink); background:var(--surface); }
+
   .actions { display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap; }
   .btn { display:inline-flex; align-items:center; gap:.5rem; font:inherit; font-size:1.02rem; line-height:1; color:var(--ink); background:none; border:1px solid var(--line); border-radius:999px; padding:.62rem 1.15rem .66rem; cursor:pointer; }
   .btn:hover { border-color:var(--muted); } .btn:focus-visible { outline:1px solid var(--accent); outline-offset:2px; } .btn svg { flex:none; opacity:.85; }
@@ -192,7 +197,7 @@
         <figure class="crop"><canvas id="crop-b" width="920" height="460"></canvas><figcaption class="cap"><b>Biasca</b><i>Switzerland</i></figcaption></figure>
         <div class="cap key phone"><span class="legend"><i></i></span><i>cold · warm</i></div>
       </div>
-      <div class="reveal" id="reveal"><div><p class="count" aria-live="off"><em id="count-month">January</em></p><p class="line">These are not eyes.<br>They are <em>years</em>.</p><small>2025</small></div></div>
+      <div class="reveal" id="reveal"><div><p class="count" aria-live="off"><em id="count-month">January</em><span class="strip" id="count-strip" aria-hidden="true"><i>J</i><i>F</i><i>M</i><i>A</i><i>M</i><i>J</i><i>J</i><i>A</i><i>S</i><i>O</i><i>N</i><i>D</i></span></p><p class="line">These are not eyes.<br>They are <em>years</em>.</p><small>2025</small></div></div>
     </div>
     <span class="k" id="clock" hidden></span>
     <div class="how"><span class="k">How to read an eye</span>
@@ -311,8 +316,9 @@
   function sub(e){ return '<span style="white-space:nowrap"><b>'+e.stats.tmean.toFixed(1)+' °C</b></span> <span style="white-space:nowrap">'+e.stats.rain_mm+' mm</span>'; }
   var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'], mdays=[31,28,31,30,31,30,31,31,30,31,30,31];
   function dateOf(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } return (d+1)+' '+months[m]; }
-  var cMonth=document.getElementById('count-month'), curMonth=0, swapping=false;
-  function count(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } if(m===curMonth||swapping) return; swapping=true; cMonth.classList.add('sw'); setTimeout(function(){ cMonth.textContent=MONTHS[m]; curMonth=m; cMonth.classList.remove('sw'); swapping=false; },80); }
+  var cMonth=document.getElementById('count-month'), curMonth=0, swapping=false, MV=(location.hash.match(/months=(\w+)/)||[])[1]||'strip', cStrip=document.querySelectorAll('#count-strip i'); document.body.classList.add('months-'+MV);
+  function count(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } if(MV==='strip'){ cStrip.forEach(function(el,j){ el.classList.toggle('on',j===m); el.classList.toggle('done',j<m); }); curMonth=m; return; }
+    if(m===curMonth||swapping) return; swapping=true; cMonth.classList.add('sw'); setTimeout(function(){ cMonth.textContent=MONTHS[m]; curMonth=m; cMonth.classList.remove('sw'); swapping=false; },80); }
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---- stage 0: eyes drawing inside a face
@@ -321,7 +327,7 @@
   var GROW=[1.28,1.22]; FACE.eyes.forEach(function(e,i){ var S=Math.round(e[2]*2*GROW[i]*scale); var c=document.createElement('canvas'); c.width=c.height=S; paper(c.getContext('2d'),S); off.push(c); });
   // the lid mask: the face's own dark disc (already cut by the lids) intersected with the iris circle
   function buildMasks(){
-    fctx.drawImage(img,0,0,fc.width,fc.height);
+    fctx.drawImage(hface,0,0);
     FACE.eyes.forEach(function(e,i){ var S=off[i].width, x=e[0]*scale, y=e[1]*scale, r=e[2]*scale, x0=Math.round(x-S/2), y0=Math.round(y-S/2);
       var src=fctx.getImageData(x0,y0,S,S).data, a=new Float32Array(S*S), k;
       for(k=0;k<S*S;k++){ var g=(src[k*4]+src[k*4+1]+src[k*4+2])/3, px=k%S-(x-x0), py=Math.floor(k/S)-(y-y0), d=Math.hypot(px,py);
@@ -333,26 +339,31 @@
     tmp.width=tmp.height=masks[0].S;
   }
   function compose(){
-    fctx.drawImage(img,0,0,fc.width,fc.height);
+    fctx.drawImage(hface,0,0);
     FACE.eyes.forEach(function(e,i){ var M=masks[i], S=M.S, x=e[0]*scale, y=e[1]*scale, r=e[2]*scale, t=tmp.getContext('2d');
       t.globalCompositeOperation='source-over'; t.clearRect(0,0,S,S); t.drawImage(off[i],0,0);
       t.fillStyle='#050404'; t.beginPath(); t.arc(S/2,S/2,r*0.36,0,7); t.fill();
       t.globalCompositeOperation='destination-in'; t.drawImage(M.m,0,0);
       fctx.drawImage(tmp,M.x0,M.y0);
-      fctx.save(); fctx.globalCompositeOperation='lighten'; fctx.beginPath(); fctx.arc(x,y,r,0,7); fctx.clip(); fctx.drawImage(img,0,0,fc.width,fc.height); fctx.restore(); });
+      fctx.save(); fctx.globalCompositeOperation='lighten'; fctx.beginPath(); fctx.arc(x,y,r,0,7); fctx.clip(); fctx.drawImage(hface,0,0); fctx.restore(); });
     if(window.innerWidth<=700){ crops.forEach(function(c,i){ var e=FACE.eyes[i], sw=460*scale, sh=230*scale; c.getContext('2d').drawImage(fc, e[0]*scale-sw/2, e[1]*scale-sh/2+4*scale, sw, sh, 0,0,c.width,c.height); }); }
   }
   var crops=[document.getElementById('crop-a'),document.getElementById('crop-b')];
   function fit(){ if(pos>=8760 || reduce) compose(); }
   window.addEventListener('resize',fit);
-  img.onload=function(){
+  var HERO_DY=(FACE2.eyes[0][1]-FACE.eyes[0][1]);   // the hero is a crop of the card face: same patches, shifted up
+  var hface=document.createElement('canvas'); hface.width=fc.width; hface.height=fc.height;
+  function heroFace(done){ var levels=[WORLD.belohorizonte.stats.rain_mm, WORLD.biasca.stats.rain_mm].map(wetness), keys=levels.map(function(lv,i){ return lv==='dry'||lv==='drier'&&!WET['LR'[i]+'-drier'] ? null : 'LR'[i]+'-'+lv; });
+    var todo=keys.filter(Boolean), n=todo.length, imgs={}; function fin(){ var x=hface.getContext('2d'); x.drawImage(img,0,0,fc.width,fc.height); keys.forEach(function(k){ if(k&&imgs[k]){ var w=WET[k]; x.drawImage(imgs[k], w.x*scale, (w.y-HERO_DY)*scale, w.w*scale, w.h*scale); } }); done(); }
+    if(!n) return fin(); todo.forEach(function(k){ var im=new Image(); im.onload=function(){ imgs[k]=im; if(!--n) fin(); }; im.onerror=function(){ if(!--n) fin(); }; im.src=WET[k].src; }); }
+  img.onload=function(){ heroFace(function(){
     buildMasks();
     if(reduce){ off.forEach(function(c,i){ drawEye(c.getContext('2d'),c.width,ROWS[i],0,8760); }); compose(); count(8759); reveal.classList.add('on'); clock.textContent='8,760 hours'; return; }
     (function tick(){
       if(pos<8760){ off.forEach(function(c,i){ drawEye(c.getContext('2d'),c.width,ROWS[i],pos,pos+48); }); pos+=48; compose(); count(Math.min(pos,8759)); requestAnimationFrame(tick); }
       else { compose(); count(8759); clock.textContent='8,760 hours'; setTimeout(function(){ reveal.classList.add('on'); }, 350); }
     })();
-  };
+  }); };
   img.src=FACE.src;
 
   // ---- how to read: a small eye that lights the part each line explains
@@ -424,7 +435,7 @@
     return row('Warmth', scaleRow(k,'tmean',EXT.tmean.min,EXT.tmean.max), st.tmean.toFixed(1)+' °C', extreme(k,'tmean','warmest','coldest'))
          + row('Rain', scaleRow(k,'rain_mm',EXT.rain_mm.min,EXT.rain_mm.max), st.rain_mm.toLocaleString('en')+' mm', extreme(k,'rain_mm','wettest','driest'))
          + row('Light', scaleRow(k,'day_h',EXT.day_h.min,EXT.day_h.max), st.day_h.toLocaleString('en')+' h', extreme(k,'day_h','most light','least light')); }
-  function wetness(rain){ return rain<100?'drier':rain<800?'dry':rain<2000?'brim':rain<3000?'tear':'weep'; }
+  function wetness(rain){ return rain<400?'drier':rain<900?'dry':rain<1400?'brim':rain<2200?'tear':'weep'; }   // 25 places, 2025: 4 drier · 5 dry · 8 brim · 4 tear · 4 weep
   function composePlate(m){ if(!m.lensData) return; var D=m.D, ic=m.iris.getContext('2d',{willReadFrequently:true}), id=ic.getImageData(0,0,D,D), px=id.data, L=m.lensData, pr=m.pupil, c=D/2;
     for(var y=0;y<D;y++){ for(var x=0;x<D;x++){ var i=(y*D+x)*4, sh=L[i]/100, a=L[i+3]; if(a===0){ px[i+3]=0; continue; }
       var dx=x-c, dy=y-c; if(dx*dx+dy*dy<pr*pr){ px[i]=6; px[i+1]=5; px[i+2]=5; } else { px[i]=Math.min(255,px[i]*sh); px[i+1]=Math.min(255,px[i+1]*sh); px[i+2]=Math.min(255,px[i+2]*sh); } px[i+3]=a; } }
@@ -469,7 +480,8 @@
   var cardCv=document.getElementById('card'), sel={}; ['pa','pb','py','pp','pya','pyb'].forEach(function(id){ sel[id]=document.getElementById(id); });
   var byName=keys.slice().sort(function(a,b){ return WORLD[a].label.localeCompare(WORLD[b].label); });
   function fill(s,items,cur,labelOf){ s.innerHTML=''; items.forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=labelOf?labelOf(v):v; s.appendChild(o); }); s.value=cur; size(s); }
-  function size(s){ var m=document.createElement('span'); m.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;font:inherit;font-style:italic;'; m.textContent=s.options[s.selectedIndex]?s.options[s.selectedIndex].textContent:''; s.parentNode.appendChild(m); var w=m.getBoundingClientRect().width; m.remove(); s.style.width=(w+parseFloat(getComputedStyle(s).fontSize)*1.25)+'px'; }
+  function word(s){ var v=s.parentNode.querySelector('.v'); if(!v){ v=document.createElement('span'); v.className='v'; s.parentNode.insertBefore(v,s); } v.textContent=s.options[s.selectedIndex]?s.options[s.selectedIndex].textContent:''; }
+  function size(s){ word(s); }   // the span sizes itself; the select just covers it
   var placeLabel=function(k){ return place(WORLD[k]).name; };
   function common(a,b){ var yb=yearsOf(b); return yearsOf(a).filter(function(y){ return yb.indexOf(y)>=0; }); }
   function eyeCanvas(k,y,S){ var c=document.createElement('canvas'); c.width=c.height=S; still(c,rowsOf(k,y)); return c; }
@@ -484,7 +496,7 @@
   var FC={key:null,cv:null,masks:null};
   function faceCanvas(levels){ // the card face with each eye as wet as its rain: base + patch per eye
     var key=levels.join('|'); if(FC.key===key) return FC.cv; var o=document.createElement('canvas'); o.width=FACE2.w*KR; o.height=FACE2.h*KR; var oc=o.getContext('2d'); oc.scale(KR,KR); oc.drawImage(F2.img,0,0,FACE2.w,FACE2.h);
-    var pending=false; levels.forEach(function(lv,i){ if(lv==='dry') return; var k='LR'[i]+'-'+lv, img=wetImg(k); if(img) oc.drawImage(img,WET[k].x,WET[k].y,WET[k].w,WET[k].h); else pending=true; });
+    var pending=false; levels.forEach(function(lv,i){ var k='LR'[i]+'-'+lv; if(lv==='dry'||!WET[k]) return; var img=wetImg(k); if(img) oc.drawImage(img,WET[k].x,WET[k].y,WET[k].w,WET[k].h); else pending=true; });
     FC.key=pending?null:key; FC.cv=o; FC.masks=null; return o; }   // a face still waiting for a patch is drawn but not kept
   function faceMasks(fc){ if(FC.masks) return FC.masks; var b=document.createElement('canvas'); b.width=FACE2.w; b.height=FACE2.h; var oc=b.getContext('2d',{willReadFrequently:true}); oc.drawImage(fc,0,0,FACE2.w,FACE2.h);   // masks are found at base resolution
     FC.masks=FACE2.eyes.map(function(e,i){ var r=e[2], S=Math.round(r*2*GROW2[i]), x0=Math.round(e[0]-S/2), y0=Math.round(e[1]-S/2), src=oc.getImageData(x0,y0,S,S).data, a=new Float32Array(S*S), k;
