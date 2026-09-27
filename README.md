@@ -31,6 +31,5 @@ Live and listed in the Lab gallery (website PR #16). Wetness levels by yearly ra
 <1400 brimming, <2200 a tear, above weeping; one rule for the hero, the card and the opened eye. The month
 marker during the reveal is the word (Diego's pick); `#months=strip` and `#months=none` show the alternatives.
 
-Open: this repo has no GitHub remote yet (creating `ExperiAI/iris` was refused to the session as a public
-surface; create it and `git remote add origin github-experiai:ExperiAI/iris.git`). Announcement copy is in
+Repo: https://github.com/ExperiAI/iris (remote `github-experiai:ExperiAI/iris.git`). Announcement copy is in
 `~/AI-Drafts/2026-09-27/iris-launch-linkedin.txt`. A film trailer of the reveal is optional.
