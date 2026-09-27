@@ -97,12 +97,15 @@
   .swap { font:inherit; font-size:1rem; color:var(--muted); background:none; border:0; border-bottom:1px solid var(--line); padding:0 0 .05rem; cursor:pointer; }
   .swap:hover { color:var(--ink); border-color:var(--muted); }
   .actions { display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap; }
+  .swapline { margin:.2rem 0 1.2rem; }
   .save { font:inherit; font-size:1.05rem; color:var(--ground); background:var(--ink); border:0; border-radius:999px; padding:.6rem 1.3rem .65rem; cursor:pointer; }
   .save:hover { background:#fff; } .save:focus-visible { outline:1px solid var(--accent); outline-offset:2px; }
   .mtext .actions { padding-top:1.1rem; border-top:1px solid var(--line); }
   .mtext .save { font-size:.98rem; padding:.5rem 1.1rem .55rem; }
-  .sheet .sheetbox { position:relative; width:min(100%,64rem); display:grid; gap:.9rem; justify-items:center; padding:2.6rem 1rem 1.2rem; box-sizing:border-box; }
-  .sheet img { width:100%; max-width:100%; border-radius:6px; display:block; }
+  .sharewrap { position:relative; display:inline-block; }
+  .sharemenu { position:absolute; left:0; top:calc(100% + .5rem); z-index:5; min-width:13rem; display:grid; padding:.35rem; background:#171512; border:1px solid var(--line); border-radius:10px; box-shadow:0 18px 40px rgba(0,0,0,.5); }
+  .sharemenu[hidden] { display:none; } .sharemenu button { font:inherit; font-size:1rem; text-align:left; color:var(--ink); background:none; border:0; border-radius:7px; padding:.55rem .8rem; cursor:pointer; display:flex; justify-content:space-between; gap:1rem; }
+  .sharemenu button:hover, .sharemenu button:focus-visible { background:rgba(236,230,216,.08); outline:0; } .sharemenu button small { font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; color:var(--muted); align-self:center; }
   /* the open eye */
   .modal[hidden] { display:none; }
   .modal { position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:16px; box-sizing:border-box; }
@@ -199,28 +202,17 @@
   <!-- 2 · yours: the card -->
   <section id="yours">
     <header><span class="k">Yours</span><h2>Two eyes. Choose them.</h2></header>
-    <canvas class="card" id="card" width="1256" height="750" aria-label="Your card: two eyes in one face"></canvas>
     <div class="sentence" aria-label="Choose the two eyes">
       <span class="s" data-for="places"><span class="sel"><select id="pa" aria-label="Left eye, place"></select></span><span class="nb"><span class="w">and</span><span class="sel"><select id="pb" aria-label="Right eye, place"></select></span></span><span class="nb"><span class="w">in</span><span class="sel"><select id="py" aria-label="Year"></select></span></span></span>
       <span class="s" data-for="years" hidden><span class="sel"><select id="pp" aria-label="Place"></select></span><span class="nb"><span class="w">in</span><span class="sel"><select id="pya" aria-label="Left eye, year"></select></span></span><span class="nb"><span class="w">and</span><span class="sel"><select id="pyb" aria-label="Right eye, year"></select></span></span></span>
     </div>
-    <div class="actions"><button type="button" class="save" id="save">Save as image</button><button type="button" class="swap" id="swap">Compare two years of one place instead</button></div>
+    <p class="swapline"><button type="button" class="swap" id="swap">Compare two years of one place instead</button></p>
+    <canvas class="card" id="card" width="1256" height="750" aria-label="Your card: two eyes in one face"></canvas>
+    <div class="actions"><span class="sharewrap"><button type="button" class="save" id="save" aria-haspopup="menu">Share</button><div class="sharemenu" id="save-menu" role="menu" hidden></div></span></div>
   </section>
 
   <section class="foot">
     <p>Drawn live from the hourly weather archive (Open-Meteo, ERA5). Nothing on this page is a picture, except the faces, which are here to hold the eyes.</p>
-    <details class="notes"><summary>Notes for Diego · the exhibit, built</summary>
-      <p><b>The exhibit is this page, on experiai.com/lab/iris,</b> in this order: the reversal, the world, yours (the card). Nothing else. Scrolling is the only navigation; every stage is one screen.</p>
-      <ul>
-        <li><b>Reversal:</b> the eyes draw themselves once, as a clock (month under it). The two lines appear when the year is complete. First visit only; after that the eyes are already open.</li>
-        <li><b>The world:</b> the 25 eyes as here, plus "find mine" that geolocates (with permission) and lights the nearest.</li>
-        <li><b>Yours:</b> two town fields with autocomplete (Open-Meteo geocoding, free); the portrait is the pair of eyes plus the card. <b>Own photo = later experiment, not launch:</b> feasible in the browser (MediaPipe face landmarks give the iris centre, radius and the lid contour; the photo never leaves the device), but quality depends on the photo (frontal, lit, eyes open, no glasses glare) and a pasted iris can read as a contact lens. Ship the exhibit without it; prototype it behind a quality gate afterwards.</li>
-        <li><b>The card:</b> the post. Two places in one year, or one place in two years; any town (geocoding), any year since 1941 (one archive call per eye, cached). Save downloads the PNG (2400×1500); the opened eye saves its own card (the eye as shown + caption). The Web Share API on phones where available.</li>
-        <li><b>Faces on the page:</b> only the visitor's own, or none. No generated people in the exhibit; the generated faces were for prototyping.</li>
-        <li><b>Stack:</b> one static page, the canvas code from this preview, no server, no keys. Build: about one week. Cost: $0.</li>
-        <li><b>Film:</b> optional trailer later, cut from the exhibit's own stages.</li>
-      </ul>
-    </details>
   </section>
   <div class="modal" id="modal" hidden>
     <div class="modal-bg" data-close></div>
@@ -233,16 +225,8 @@
         <div class="k" id="m-where"></div>
         <p class="why" id="m-why"></p>
         <div class="scales" id="m-nums"></div>
-        <div class="actions"><button type="button" class="save" id="m-share">Save as image</button></div>
+        <div class="actions"><span class="sharewrap"><button type="button" class="save" id="m-share" aria-haspopup="menu">Share</button><div class="sharemenu" id="m-share-menu" role="menu" hidden></div></span></div>
       </div>
-    </div>
-  </div>
-  <div class="modal sheet" id="sheet" hidden>
-    <div class="modal-bg" data-close-sheet></div>
-    <div class="sheetbox" role="dialog" aria-modal="true" aria-label="Your image" tabindex="-1">
-      <button class="close" data-close-sheet aria-label="Close">×</button>
-      <img id="sheet-img" alt="Your card">
-      <p class="k">Press and hold, or right-click, to save · on the Lab page this downloads</p>
     </div>
   </div>
 </main>
@@ -421,7 +405,8 @@
     return row('Warmth', scaleRow(k,'tmean',EXT.tmean.min,EXT.tmean.max), st.tmean.toFixed(1)+' °C', extreme(k,'tmean','warmest','coldest'))
          + row('Rain', scaleRow(k,'rain_mm',EXT.rain_mm.min,EXT.rain_mm.max), st.rain_mm.toLocaleString('en')+' mm', extreme(k,'rain_mm','wettest','driest'))
          + row('Light', scaleRow(k,'day_h',EXT.day_h.min,EXT.day_h.max), st.day_h.toLocaleString('en')+' h', extreme(k,'day_h','most light','least light')); }
-  function wetness(rain){ return rain<800?'dry':rain<2000?'brim':rain<3000?'tear':'weep'; }
+  var PARCHED=/parched/.test(location.hash);   // experimental fifth plate, for review only: open the page with #parched
+  function wetness(rain){ return rain<100&&PARCHED&&MACRO.parched?'parched':rain<800?'dry':rain<2000?'brim':rain<3000?'tear':'weep'; }
   function composePlate(m){ if(!m.lensData) return; var D=m.D, ic=m.iris.getContext('2d',{willReadFrequently:true}), id=ic.getImageData(0,0,D,D), px=id.data, L=m.lensData, pr=m.pupil, c=D/2;
     for(var y=0;y<D;y++){ for(var x=0;x<D;x++){ var i=(y*D+x)*4, sh=L[i]/100, a=L[i+3]; if(a===0){ px[i+3]=0; continue; }
       var dx=x-c, dy=y-c; if(dx*dx+dy*dy<pr*pr){ px[i]=6; px[i+1]=5; px[i+2]=5; } else { px[i]=Math.min(255,px[i]*sh); px[i+1]=Math.min(255,px[i+1]*sh); px[i+2]=Math.min(255,px[i+2]*sh); } px[i+3]=a; } }
@@ -551,14 +536,27 @@
   sel.pp.addEventListener('change',function(){ st.pp=sel.pp.value; update(); }); sel.pya.addEventListener('change',function(){ st.ya=sel.pya.value; update(); }); sel.pyb.addEventListener('change',function(){ st.yb=sel.pyb.value; update(); });
   document.getElementById('swap').addEventListener('click',function(){ st.mode = st.mode==='places' ? 'years' : 'places'; update(); });
   update(); if(document.fonts && document.fonts.ready) document.fonts.ready.then(update); window.addEventListener('resize',function(){ Object.keys(sel).forEach(function(id){ size(sel[id]); }); });
-  // save: a PNG shown in a sheet (the Lab page downloads it)
-  var sheet=document.getElementById('sheet'), sheetImg=document.getElementById('sheet-img');
-  function showSheet(cv){ sheetImg.src=cv.toDataURL('image/png'); sheet.hidden=false; document.body.style.overflow='hidden'; sheet.querySelector('.sheetbox').focus({preventScroll:true}); }
-  function closeSheet(){ sheet.hidden=true; if(modal.hidden) document.body.style.overflow=''; }
-  sheet.querySelectorAll('[data-close-sheet]').forEach(function(el){ el.addEventListener('click',closeSheet); });
-  document.addEventListener('keydown',function(ev){ if(ev.key==='Escape' && !sheet.hidden) closeSheet(); });
-  document.getElementById('save').addEventListener('click',function(){ var cv=document.createElement('canvas'); renderPair(cv); showSheet(cv); });
-  document.getElementById('m-share').addEventListener('click',function(){ var cv=document.createElement('canvas'); renderSingle(cv,modal.dataset.key); showSheet(cv); });
+  // share: the PNG goes straight to the system share sheet where the browser has one (phones, Safari, Chrome on Mac);
+  // otherwise a small menu under the button: download, copy the image, copy the link. No preview step.
+  var PAGE='https://iris.experiai.com';
+  function toBlob(cv){ return new Promise(function(res){ cv.toBlob(res,'image/png'); }); }
+  function shareTitle(key){ return key ? place(WORLD[key]).name+' · Iris' : 'Iris · '+(st.mode==='places' ? place(WORLD[st.pa]).name+' and '+place(WORLD[st.pb]).name+' in '+st.y : place(WORLD[st.pp]).name+' in '+st.ya+' and '+st.yb); }
+  function download(blob,name){ var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },2000); }
+  function shareFlow(btn,menu,render,key){ var title=shareTitle(key), file=title.replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.png';
+    var cv=document.createElement('canvas'); render(cv); toBlob(cv).then(function(blob){ var f=new File([blob],file,{type:'image/png'});
+      if(navigator.canShare && navigator.canShare({files:[f]})){ navigator.share({files:[f],title:title,text:title,url:PAGE}).catch(function(err){ if(!err || err.name!=='AbortError') openMenu(btn,menu,blob,file); }); return; }   // no sheet after all: the menu
+      openMenu(btn,menu,blob,file); }); }
+  function flash(b,t){ var old=b.firstChild.textContent; b.firstChild.textContent=t; setTimeout(function(){ b.firstChild.textContent=old; },1200); }
+  function openMenu(btn,menu,blob,file){ menu.innerHTML=''; var items=[['Download image','PNG',function(){ download(blob,file); close(); }]];
+    if(navigator.clipboard && window.ClipboardItem) items.push(['Copy image','',function(b){ navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){ flash(b,'Copied'); setTimeout(close,900); },function(){ flash(b,'Not allowed here'); }); }]);
+    items.push(['Copy link','',function(b){ navigator.clipboard.writeText(PAGE).then(function(){ flash(b,'Copied'); setTimeout(close,900); },function(){ flash(b,PAGE); }); }]);
+    items.forEach(function(it){ var b=document.createElement('button'); b.type='button'; b.setAttribute('role','menuitem'); b.appendChild(document.createTextNode(it[0])); if(it[1]){ var sm=document.createElement('small'); sm.textContent=it[1]; b.appendChild(sm); } b.addEventListener('click',function(){ it[2](b); }); menu.appendChild(b); });
+    menu.hidden=false; btn.setAttribute('aria-expanded','true'); menu.querySelector('button').focus();
+    function close(){ menu.hidden=true; btn.setAttribute('aria-expanded','false'); document.removeEventListener('click',away,true); document.removeEventListener('keydown',esc); }
+    function away(ev){ if(!menu.contains(ev.target) && ev.target!==btn) close(); } function esc(ev){ if(ev.key==='Escape'){ close(); btn.focus(); } }
+    setTimeout(function(){ document.addEventListener('click',away,true); document.addEventListener('keydown',esc); },0); }
+  document.getElementById('save').addEventListener('click',function(){ var m=document.getElementById('save-menu'); if(!m.hidden){ m.hidden=true; return; } shareFlow(this,m,renderPair); });
+  document.getElementById('m-share').addEventListener('click',function(){ var m=document.getElementById('m-share-menu'); if(!m.hidden){ m.hidden=true; return; } var k=modal.dataset.key; shareFlow(this,m,function(cv){ renderSingle(cv,k); },k); });
 })();
 </script>
 
