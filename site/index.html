@@ -28,9 +28,9 @@
   .face { position:relative; width:100%; max-width:100%; aspect-ratio:1456/388; background:#000; overflow:hidden; border-radius:4px; }
   .face canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
   .reveal { position:absolute; inset:0; display:grid; place-items:center; text-align:center; pointer-events:none; }
-  .reveal div { display:grid; padding:1rem 1.6rem; border-radius:6px; min-width:12rem; transition:background 1.2s ease, backdrop-filter 1.2s ease; }
+  .reveal div { display:grid; padding:1rem 1.6rem; border-radius:6px; min-width:12rem; transition:background .7s ease, backdrop-filter .7s ease; }
   .reveal.on div { background:rgba(11,10,9,.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
-  .reveal div > * { grid-area:1/1; align-self:center; transition:opacity 1.2s ease; }
+  .reveal div > * { grid-area:1/1; align-self:center; transition:opacity .7s ease; }
   .reveal p { margin:0; font-size:clamp(1.4rem,3.4vw,2.6rem); line-height:1.15; }
   .reveal p em { font-style:italic; color:var(--accent-ink); }
   .reveal .count { justify-self:center; font-size:clamp(1rem,1.6vw,1.35rem); font-style:italic; color:var(--ink); background:rgba(11,10,9,.58); border:1px solid rgba(236,230,216,.1); border-radius:6px; padding:.4rem .95rem .45rem; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
@@ -346,8 +346,8 @@
     buildMasks();
     if(reduce){ off.forEach(function(c,i){ drawEye(c.getContext('2d'),c.width,ROWS[i],0,8760); }); compose(); count(8759); reveal.classList.add('on'); clock.textContent='8,760 hours'; return; }
     (function tick(){
-      if(pos<8760){ off.forEach(function(c,i){ drawEye(c.getContext('2d'),c.width,ROWS[i],pos,pos+18); }); pos+=18; compose(); count(Math.min(pos,8759)); requestAnimationFrame(tick); }
-      else { compose(); count(8759); clock.textContent='8,760 hours'; setTimeout(function(){ reveal.classList.add('on'); }, 900); }
+      if(pos<8760){ off.forEach(function(c,i){ drawEye(c.getContext('2d'),c.width,ROWS[i],pos,pos+48); }); pos+=48; compose(); count(Math.min(pos,8759)); requestAnimationFrame(tick); }
+      else { compose(); count(8759); clock.textContent='8,760 hours'; setTimeout(function(){ reveal.classList.add('on'); }, 350); }
     })();
   };
   img.src=FACE.src;
