@@ -111,10 +111,13 @@
   .sel::after { content:''; position:absolute; right:.16em; top:50%; width:.32em; height:.32em; border-right:1.5px solid var(--accent); border-bottom:1.5px solid var(--accent); transform:translateY(-70%) rotate(45deg); pointer-events:none; opacity:.85; }
   .sel select option { font-style:normal; font-size:1rem; color:var(--ink); background:var(--surface); }
   .actions { display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap; }
-  .save { font:inherit; font-size:1.05rem; color:var(--ground); background:var(--ink); border:0; border-radius:999px; padding:.6rem 1.3rem .65rem; cursor:pointer; }
-  .save:hover { background:#fff; } .save:focus-visible { outline:1px solid var(--accent); outline-offset:2px; }
+  .btn { display:inline-flex; align-items:center; gap:.5rem; font:inherit; font-size:1.02rem; line-height:1; color:var(--ink); background:none; border:1px solid var(--line); border-radius:999px; padding:.62rem 1.15rem .66rem; cursor:pointer; }
+  .btn:hover { border-color:var(--muted); } .btn:focus-visible { outline:1px solid var(--accent); outline-offset:2px; } .btn svg { flex:none; opacity:.85; }
+  .btn.primary { color:var(--ground); background:var(--ink); border-color:var(--ink); } .btn.primary:hover { background:#fff; border-color:#fff; }
+  .actions { flex-direction:row; } .actions .sharewrap { order:1; } .actions #dl, .actions #m-dl { order:2; }
+  body.has-share .actions .sharewrap { order:0; } body:not(.has-share) .actions #dl, body:not(.has-share) .actions #m-dl { order:0; }   /* the one that surely works leads: Share on phones, Download elsewhere */
   .mtext .actions { padding-top:1.1rem; border-top:1px solid var(--line); }
-  .mtext .save { font-size:.98rem; padding:.5rem 1.1rem .55rem; }
+  .mtext .btn { font-size:.95rem; padding:.5rem 1rem .55rem; }
   .sharewrap { position:relative; display:inline-block; }
   .sharemenu { position:absolute; left:0; top:calc(100% + .5rem); z-index:5; min-width:13rem; display:grid; padding:.35rem; background:#171512; border:1px solid var(--line); border-radius:10px; box-shadow:0 18px 40px rgba(0,0,0,.5); }
   .sharemenu[hidden] { display:none; } .sharemenu button { font:inherit; font-size:1rem; text-align:left; color:var(--ink); background:none; border:0; border-radius:7px; padding:.55rem .8rem; cursor:pointer; display:flex; justify-content:space-between; gap:1rem; }
@@ -224,7 +227,7 @@
         <div class="fchip" id="chip-a"><b></b><small></small></div><div class="fchip" id="chip-b"><b></b><small></small></div></div>
       <div class="cardband"><div class="cstats" id="stats-a"></div><div class="cmid" id="card-mid"></div><div class="cstats" id="stats-b"></div></div>
     </div>
-    <div class="actions"><span class="sharewrap"><button type="button" class="save" id="save" aria-haspopup="menu">Share</button><div class="sharemenu" id="save-menu" role="menu" hidden></div></span></div>
+    <div class="actions"><button type="button" class="btn" id="dl"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M8 2v8m0 0 3-3M8 10 5 7M3 12.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Download image</span></button><span class="sharewrap"><button type="button" class="btn" id="save" aria-haspopup="menu"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M8 10V2.5m0 0L5.2 5.3M8 2.5l2.8 2.8M3.5 8.5v4a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Share</span></button><div class="sharemenu" id="save-menu" role="menu" hidden></div></span></div>
   </section>
 
   <section class="foot">
@@ -241,7 +244,7 @@
         <div class="k" id="m-where"></div>
         <p class="why" id="m-why"></p>
         <div class="scales" id="m-nums"></div>
-        <div class="actions"><span class="sharewrap"><button type="button" class="save" id="m-share" aria-haspopup="menu">Share</button><div class="sharemenu" id="m-share-menu" role="menu" hidden></div></span></div>
+        <div class="actions"><button type="button" class="btn" id="m-dl"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M8 2v8m0 0 3-3M8 10 5 7M3 12.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Download image</span></button><span class="sharewrap"><button type="button" class="btn" id="m-share" aria-haspopup="menu"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M8 10V2.5m0 0L5.2 5.3M8 2.5l2.8 2.8M3.5 8.5v4a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Share</span></button><div class="sharemenu" id="m-share-menu" role="menu" hidden></div></span></div>
       </div>
     </div>
   </div>
@@ -560,6 +563,10 @@
   // share: the PNG goes straight to the system share sheet where the browser has one (phones, Safari, Chrome on Mac);
   // otherwise a small menu under the button: download, copy the image, copy the link. No preview step.
   var PAGE='https://iris.experiai.com';
+  var HAS_SHARE=!!(navigator.canShare && window.File && navigator.canShare({files:[new File([''],'x.png',{type:'image/png'})]}));
+  if(HAS_SHARE) document.body.classList.add('has-share');
+  document.querySelectorAll(HAS_SHARE ? '#save, #m-share' : '#dl, #m-dl').forEach(function(b){ b.classList.add('primary'); });
+  function downloadFlow(render,key){ var title=shareTitle(key), file=title.replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.png'; var cv=document.createElement('canvas'); render(cv); toBlob(cv).then(function(blob){ download(blob,file); }); }
   function toBlob(cv){ return new Promise(function(res){ cv.toBlob(res,'image/png'); }); }
   function shareTitle(key){ return key ? place(WORLD[key]).name+' · Iris' : 'Iris · '+(st.mode==='places' ? place(WORLD[st.pa]).name+' and '+place(WORLD[st.pb]).name+' in '+st.y : place(WORLD[st.pp]).name+' in '+st.ya+' and '+st.yb); }
   function download(blob,name){ var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },2000); }
@@ -568,14 +575,16 @@
       if(navigator.canShare && navigator.canShare({files:[f]})){ navigator.share({files:[f],title:title,text:title,url:PAGE}).catch(function(err){ if(!err || err.name!=='AbortError') openMenu(btn,menu,blob,file); }); return; }   // no sheet after all: the menu
       openMenu(btn,menu,blob,file); }); }
   function flash(b,t){ var old=b.firstChild.textContent; b.firstChild.textContent=t; setTimeout(function(){ b.firstChild.textContent=old; },1200); }
-  function openMenu(btn,menu,blob,file){ menu.innerHTML=''; var items=[['Download image','PNG',function(){ download(blob,file); close(); }]];
-    if(navigator.clipboard && window.ClipboardItem) items.push(['Copy image','',function(b){ navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){ flash(b,'Copied'); setTimeout(close,900); },function(){ flash(b,'Not allowed here'); }); }]);
+  function openMenu(btn,menu,blob,file){ menu.innerHTML=''; var items=[];
+    if(navigator.clipboard && window.ClipboardItem) items.push(['Copy image','PNG',function(b){ navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){ flash(b,'Copied'); setTimeout(close,900); },function(){ flash(b,'Not allowed here'); }); }]);
     items.push(['Copy link','',function(b){ navigator.clipboard.writeText(PAGE).then(function(){ flash(b,'Copied'); setTimeout(close,900); },function(){ flash(b,PAGE); }); }]);
     items.forEach(function(it){ var b=document.createElement('button'); b.type='button'; b.setAttribute('role','menuitem'); b.appendChild(document.createTextNode(it[0])); if(it[1]){ var sm=document.createElement('small'); sm.textContent=it[1]; b.appendChild(sm); } b.addEventListener('click',function(){ it[2](b); }); menu.appendChild(b); });
     menu.hidden=false; btn.setAttribute('aria-expanded','true'); menu.querySelector('button').focus();
     function close(){ menu.hidden=true; btn.setAttribute('aria-expanded','false'); document.removeEventListener('click',away,true); document.removeEventListener('keydown',esc); }
     function away(ev){ if(!menu.contains(ev.target) && ev.target!==btn) close(); } function esc(ev){ if(ev.key==='Escape'){ close(); btn.focus(); } }
     setTimeout(function(){ document.addEventListener('click',away,true); document.addEventListener('keydown',esc); },0); }
+  document.getElementById('dl').addEventListener('click',function(){ downloadFlow(function(cv){ renderPair(cv,true); }); });
+  document.getElementById('m-dl').addEventListener('click',function(){ var k=modal.dataset.key; downloadFlow(function(cv){ renderSingle(cv,k); },k); });
   document.getElementById('save').addEventListener('click',function(){ var m=document.getElementById('save-menu'); if(!m.hidden){ m.hidden=true; return; } shareFlow(this,m,function(cv){ renderPair(cv,true); }); });
   window.__iris={renderPair:renderPair, renderSingle:renderSingle};
   document.getElementById('m-share').addEventListener('click',function(){ var m=document.getElementById('m-share-menu'); if(!m.hidden){ m.hidden=true; return; } var k=modal.dataset.key; shareFlow(this,m,function(cv){ renderSingle(cv,k); },k); });
