@@ -19,8 +19,10 @@ Biasca every decade), the face plates and the four macro eye plates.
 
 ## Deploy
 
-    cd ~/Code/experiai/lab/iris/site && vercel deploy --prod --yes
-    npx vercel alias set <deployment-url> iris.experiai.com
+    ~/Code/experiai/lab/autorun/deploy-exhibit.sh iris
+
+(deploys `site/`, sets the alias, verifies iris.experiai.com; by hand it is `vercel deploy --prod --yes` in
+`site/` then `npx vercel alias set <deployment-url> iris.experiai.com`).
 
 The alias is a separate step on every prod deploy (see the Lab CLAUDE.md). Verify on https://iris.experiai.com,
 never on the deployment URL.
