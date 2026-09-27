@@ -363,13 +363,22 @@
       day:function(){ dim(); h.save(); sector(D,D+1.2,r0-2,R+8); h.clip(); h.drawImage(eye,0,0); h.restore(); sector(D,D+1.2,r0-2,R+8); h.strokeStyle=G; h.lineWidth=2; h.stroke();
         label('1 Jan',cx,r0*0.9+S*0.02,'center'); h.beginPath(); h.moveTo(cx,S*0.005); h.lineTo(cx,r0*0.5); h.strokeStyle=G; h.lineWidth=1.5; h.stroke();
       },
-      hour:function(){ dim(); h.save(); sector(D-6,D+6,r0-2,R+2); h.clip(); h.drawImage(eye,0,0); h.restore(); var a=ang(D);
-        for(var k=0;k<=24;k+=6){ var r=r0+k*seg; h.beginPath(); h.arc(cx,cx,r,ang(D-6),ang(D+6)); h.strokeStyle=k%12?'rgba(242,208,138,.45)':G; h.lineWidth=k%12?1:2; h.stroke(); }
-        var a2=ang(D+9); label('00:00',cx+Math.cos(a2)*(r0+seg*1.5),cx+Math.sin(a2)*(r0+seg*1.5),'left'); label('12:00',cx+Math.cos(a2)*(r0+seg*12),cx+Math.sin(a2)*(r0+seg*12),'left'); label('24:00',cx+Math.cos(a2)*(R+4),cx+Math.sin(a2)*(R+4),'left'); },
+      hour:function(){ dim(); var E=91.25, w=5; h.save(); sector(E-w,E+w,r0-2,R+2); h.clip(); h.drawImage(eye,0,0); h.restore();   // one April band, lit: a day read from the pupil out
+        var y=cx, x0=cx+r0, x1=cx+R; h.beginPath(); h.moveTo(x0,y); h.lineTo(x1,y); h.strokeStyle=G; h.lineWidth=2; h.stroke();
+        h.beginPath(); h.moveTo(x1,y); h.lineTo(x1-10,y-6); h.moveTo(x1,y); h.lineTo(x1-10,y+6); h.stroke();                       // the hand points outward
+        for(var k=0;k<=24;k+=6){ var x=x0+k*seg, big=k%12===0; h.beginPath(); h.moveTo(x,y-(big?12:6)); h.lineTo(x,y+(big?12:6)); h.lineWidth=big?2:1; h.strokeStyle=big?G:'rgba(242,208,138,.6)'; h.stroke(); }
+        h.font='500 20px "IBM Plex Mono", Menlo, monospace'; h.fillStyle=G; h.textBaseline='top';
+        h.textAlign='left'; h.fillText('00:00',x0-2,y+18); h.textAlign='center'; h.fillText('12:00',x0+12*seg,y+18); h.textAlign='right'; h.fillText('24:00',x1+2,y+18);
+        h.font='400 15px "IBM Plex Mono", Menlo, monospace'; h.fillStyle='rgba(236,230,216,.85)'; h.textAlign='left'; h.fillText('PUPIL',x0-2,y-38); h.textAlign='right'; h.fillText('RIM',x1+2,y-38); },
       night:function(){ h.drawImage(eye,0,0); h.globalAlpha=1; var rise=[],set=[]; for(var d=0;d<365;d++){ var f=-1,l=-1; for(var k=0;k<24;k++){ if(rows[d*24+k][4]){ if(f<0) f=k; l=k+1; } } rise.push(f<0?24:f); set.push(l<0?0:l); }
         [rise,set].forEach(function(arr){ h.beginPath(); for(var d=0;d<365;d++){ var a=ang(d+0.5), r=r0+arr[d]*seg; if(d) h.lineTo(cx+Math.cos(a)*r,cx+Math.sin(a)*r); else h.moveTo(cx+Math.cos(a)*r,cx+Math.sin(a)*r); } h.closePath(); h.strokeStyle=G; h.lineWidth=2; h.stroke(); });
         label('night',cx,cx-r0*0.2,'center'); label('night',cx,S*0.965,'center'); label('day',cx,cx-(r0+seg*14),'center'); },
-      temp:function(){ h.drawImage(eye,0,0); },
+      temp:function(){ dim(); [[334,424],[151,243]].forEach(function(q){ h.save(); sector(q[0],q[1],r0-2,R+2); h.clip(); h.drawImage(eye,0,0); h.restore(); });   // Dec-Feb and Jun-Aug lit, the rest dimmed
+        function halo(t,x,y,size,col){ h.font='500 '+size+'px "IBM Plex Mono", Menlo, monospace'; h.textAlign='center'; h.textBaseline='middle'; h.lineWidth=6; h.strokeStyle='rgba(11,10,9,.9)'; h.strokeText(t,x,y); h.fillStyle=col||G; h.fillText(t,x,y); }
+        var rm=(r0+R)/2+seg*3; halo('WINTER',cx+Math.cos(ang(14))*rm,cx+Math.sin(ang(14))*rm,22); halo('SUMMER',cx+Math.cos(ang(197))*rm,cx+Math.sin(ang(197))*rm,22);
+        var lo=0,hi=0; for(var i=1;i<rows.length;i++){ if(rows[i][0]<rows[lo][0]) lo=i; if(rows[i][0]>rows[hi][0]) hi=i; }
+        [[lo,'#9dc0ee'],[hi,'#f0a860']].forEach(function(m){ var i=m[0], d=Math.floor(i/24), k=i%24, a=ang(d+0.5), rr=r0+(k+0.5)*seg, x=cx+Math.cos(a)*rr, y=cx+Math.sin(a)*rr;
+          h.beginPath(); h.arc(x,y,9,0,7); h.lineWidth=2.5; h.strokeStyle=m[1]; h.stroke(); var t=(rows[i][0]/10).toFixed(0)+' °C', dx=Math.cos(a)>=0?1:-1; halo(t,x+dx*46,y+(Math.sin(a)>0?18:-18),18,m[1]); }); },
       rain:function(){ dim(); h.globalAlpha=.9; for(var i=0;i<rows.length;i++){ var r=rows[i]; if(r[1]>10&&r[4]){ var d=Math.floor(i/24), k=i%24, a=ang(d+0.5), rr=r0+(k+0.5)*seg; h.beginPath(); h.arc(cx+Math.cos(a)*rr,cx+Math.sin(a)*rr,2.6,0,7); h.fillStyle='#f4f6fb'; h.fill(); } } h.globalAlpha=1; }
     };
     function show(k){ h.clearRect(0,0,S,S); h.globalAlpha=1; (draw[k]||draw.day)(); }
