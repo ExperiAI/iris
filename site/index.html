@@ -316,7 +316,7 @@
   function sub(e){ return '<span style="white-space:nowrap"><b>'+e.stats.tmean.toFixed(1)+' °C</b></span> <span style="white-space:nowrap">'+e.stats.rain_mm+' mm</span>'; }
   var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'], mdays=[31,28,31,30,31,30,31,31,30,31,30,31];
   function dateOf(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } return (d+1)+' '+months[m]; }
-  var cMonth=document.getElementById('count-month'), curMonth=0, swapping=false, MV=(location.hash.match(/months=(\w+)/)||[])[1]||'strip', cStrip=document.querySelectorAll('#count-strip i'); document.body.classList.add('months-'+MV);
+  var cMonth=document.getElementById('count-month'), curMonth=0, swapping=false, MV=(location.hash.match(/months=(\w+)/)||[])[1]||'word', cStrip=document.querySelectorAll('#count-strip i'); document.body.classList.add('months-'+MV);
   function count(i){ var d=Math.floor(i/24), m=0; while(m<11 && d>=mdays[m]){ d-=mdays[m]; m++; } if(MV==='strip'){ cStrip.forEach(function(el,j){ el.classList.toggle('on',j===m); el.classList.toggle('done',j<m); }); curMonth=m; return; }
     if(m===curMonth||swapping) return; swapping=true; cMonth.classList.add('sw'); setTimeout(function(){ cMonth.textContent=MONTHS[m]; curMonth=m; cMonth.classList.remove('sw'); swapping=false; },80); }
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
