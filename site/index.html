@@ -88,7 +88,7 @@
   .card { width:100%; max-width:100%; aspect-ratio:1256/750; display:block; border-radius:8px; background:#000; border:1px solid var(--line); }
   .sentence { font-size:clamp(1.5rem,3vw,2.3rem); line-height:1.5; }
   .sentence .s { display:inline; } .sentence .s[hidden] { display:none; }
-  .sentence .w { color:var(--muted); margin:0 .45em; }
+  .sentence .w { color:var(--muted); margin:0 .45em; } .sentence .nb { white-space:nowrap; }
   .sel { position:relative; display:inline-block; }
   .sel select { font:inherit; font-style:italic; color:var(--accent-ink); background:none; border:0; border-bottom:1px solid var(--line); border-radius:0; padding:0 1.15em .05em 0; appearance:none; -webkit-appearance:none; cursor:pointer; max-width:100%; }
   .sel select:hover { border-bottom-color:var(--accent); } .sel select:focus-visible { outline:none; border-bottom-color:var(--accent-ink); }
@@ -201,8 +201,8 @@
     <header><span class="k">Yours</span><h2>Two eyes. Choose them.</h2></header>
     <canvas class="card" id="card" width="1256" height="750" aria-label="Your card: two eyes in one face"></canvas>
     <div class="sentence" aria-label="Choose the two eyes">
-      <span class="s" data-for="places"><span class="sel"><select id="pa" aria-label="Left eye, place"></select></span><span class="w">and</span><span class="sel"><select id="pb" aria-label="Right eye, place"></select></span><span class="w">in</span><span class="sel"><select id="py" aria-label="Year"></select></span></span>
-      <span class="s" data-for="years" hidden><span class="sel"><select id="pp" aria-label="Place"></select></span><span class="w">in</span><span class="sel"><select id="pya" aria-label="Left eye, year"></select></span><span class="w">and</span><span class="sel"><select id="pyb" aria-label="Right eye, year"></select></span></span>
+      <span class="s" data-for="places"><span class="sel"><select id="pa" aria-label="Left eye, place"></select></span><span class="nb"><span class="w">and</span><span class="sel"><select id="pb" aria-label="Right eye, place"></select></span></span><span class="nb"><span class="w">in</span><span class="sel"><select id="py" aria-label="Year"></select></span></span></span>
+      <span class="s" data-for="years" hidden><span class="sel"><select id="pp" aria-label="Place"></select></span><span class="nb"><span class="w">in</span><span class="sel"><select id="pya" aria-label="Left eye, year"></select></span></span><span class="nb"><span class="w">and</span><span class="sel"><select id="pyb" aria-label="Right eye, year"></select></span></span></span>
     </div>
     <div class="actions"><button type="button" class="save" id="save">Save as image</button><button type="button" class="swap" id="swap">Compare two years of one place instead</button></div>
   </section>
@@ -256,6 +256,7 @@
   var WORLD={}; Object.keys(DATA).forEach(function(k){ var d=DATA[k]; WORLD[k]={label:d.label,lat:d.lat,lon:d.lon,tz:d.tz,stats:d.years['2025'].stats}; Object.defineProperty(WORLD[k],'rows',{get:function(){ return rowsOf(k,'2025'); }}); });
   var FACE = window.__IRIS.FACE;   // {src, w, h, eyes:[[x,y,r],[x,y,r]]}
   var FACE2 = window.__IRIS.FACE2;  // the whole face for the card: {src,w,h,eyes}
+  var WET = window.__IRIS.WET;      // wet-eye patches over the card face: {'L-brim':{x,y,w,h,src},...} (the rain level of each eye)
   var MACRO = window.__IRIS.MACRO; // dry/brim/tear/weep: {w,h,x0,y0,D,r,pupil,plate,lens}
   var WHY = {
     tromso:'<b>Polar night.</b> For seven weeks the sun never rises, so the pupil reaches the rim.',
@@ -466,13 +467,20 @@
   // the pair card: the whole face, the two irises set into the eyes, a caption band below (1456×1092, 4:3)
   var F2={img:new Image(), ready:false, masks:null}; F2.img.onload=function(){ F2.ready=true; if(typeof update==='function') update(); }; F2.img.src=FACE2.src;
   var GROW2=[1.28,1.22];
-  function faceMasks(){ if(F2.masks) return F2.masks; var o=document.createElement('canvas'); o.width=FACE2.w; o.height=FACE2.h; var oc=o.getContext('2d',{willReadFrequently:true}); oc.drawImage(F2.img,0,0);
-    F2.masks=FACE2.eyes.map(function(e,i){ var r=e[2], S=Math.round(r*2*GROW2[i]), x0=Math.round(e[0]-S/2), y0=Math.round(e[1]-S/2), src=oc.getImageData(x0,y0,S,S).data, a=new Float32Array(S*S), k;
+  var WETIMG={};   // patch images, loaded the first time a level is needed
+  function wetImg(key){ var w=WETIMG[key]; if(w) return w.ready?w.img:null; var img=new Image(); w=WETIMG[key]={img:img,ready:false}; img.onload=function(){ w.ready=true; update(); }; img.src=WET[key].src; return null; }
+  var FC={key:null,cv:null,masks:null};
+  function faceCanvas(levels){ // the card face with each eye as wet as its rain: base + patch per eye
+    var key=levels.join('|'); if(FC.key===key) return FC.cv; var o=document.createElement('canvas'); o.width=FACE2.w; o.height=FACE2.h; var oc=o.getContext('2d',{willReadFrequently:true}); oc.drawImage(F2.img,0,0);
+    var pending=false; levels.forEach(function(lv,i){ if(lv==='dry') return; var k='LR'[i]+'-'+lv, img=wetImg(k); if(img) oc.drawImage(img,WET[k].x,WET[k].y); else pending=true; });
+    FC.key=pending?null:key; FC.cv=o; FC.masks=null; return o; }   // a face still waiting for a patch is drawn but not kept
+  function faceMasks(fc){ if(FC.masks) return FC.masks; var oc=fc.getContext('2d',{willReadFrequently:true});
+    FC.masks=FACE2.eyes.map(function(e,i){ var r=e[2], S=Math.round(r*2*GROW2[i]), x0=Math.round(e[0]-S/2), y0=Math.round(e[1]-S/2), src=oc.getImageData(x0,y0,S,S).data, a=new Float32Array(S*S), k;
       for(k=0;k<S*S;k++){ var g=(src[k*4]+src[k*4+1]+src[k*4+2])/3, px=k%S-(e[0]-x0), py=Math.floor(k/S)-(e[1]-y0), d=Math.hypot(px,py); a[k]=Math.max(0,Math.min(1,(46-g)/14))*Math.max(0,Math.min(1,(r*1.04-d)/1.5)); }
       var m=document.createElement('canvas'); m.width=m.height=S; var md=m.getContext('2d').createImageData(S,S);
       for(k=0;k<S*S;k++){ var yy=Math.floor(k/S), xx=k%S, sm=0, n=0; for(var dy=-1;dy<=1;dy++) for(var dx=-1;dx<=1;dx++){ var X=xx+dx, Y=yy+dy; if(X>=0&&Y>=0&&X<S&&Y<S){ sm+=a[Y*S+X]; n++; } } md.data[k*4]=md.data[k*4+1]=md.data[k*4+2]=255; md.data[k*4+3]=Math.round(255*sm/n); }
       m.getContext('2d').putImageData(md,0,0); return {m:m,x0:x0,y0:y0,S:S,r:r,cx:e[0],cy:e[1]}; });
-    return F2.masks; }
+    return FC.masks; }
   function statCols(ctx,xRight,y,items,big,small){ // items right-aligned as columns: value above, label below
     var gap=big*1.1, x=xRight; items.slice().reverse().forEach(function(it){ ctx.textAlign='right'; ctx.fillStyle='#ece6d8'; ctx.font='400 '+big+'px "Cormorant Garamond", Georgia, serif'; var w=ctx.measureText(it[0]).width; ctx.fillText(it[0],x,y);
       ctx.fillStyle='#9a9384'; ctx.font='400 '+small+'px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(it[1].toUpperCase(),x,y+small*1.9); x-=w+gap; }); }
@@ -483,13 +491,14 @@
     ctx.fillStyle='#f2d08a'; ctx.font='400 15px "IBM Plex Mono", Menlo, monospace'; ctx.fillText(secondary.toUpperCase().split('').join('\u200a'),cx,y+70); }
   var CROP={x:100,y:120,w:1256,h:520};   // the eye band of the face: the eyes are the picture
   function renderPair(cv){ var FW=CROP.w, FH=CROP.h, BAND=230, W=FW, H=FH+BAND, ox=-CROP.x, oy=-CROP.y; if(cv.width!==W){ cv.width=W; cv.height=H; } var ctx=cv.getContext('2d');
-    ctx.fillStyle='#0b0a09'; ctx.fillRect(0,0,W,H); if(!F2.ready) return; ctx.drawImage(F2.img,ox,oy);
+    ctx.fillStyle='#0b0a09'; ctx.fillRect(0,0,W,H); if(!F2.ready) return;
     var A = st.mode==='places' ? {k:st.pa,y:st.y} : {k:st.pp,y:st.ya}, B = st.mode==='places' ? {k:st.pb,y:st.y} : {k:st.pp,y:st.yb};
-    var masks=faceMasks(), tmp=document.createElement('canvas');
+    var face=faceCanvas([A,B].map(function(e){ return wetness(DATA[e.k].years[e.y].stats.rain_mm); })); ctx.drawImage(face,ox,oy);
+    var masks=faceMasks(face), tmp=document.createElement('canvas');
     [A,B].forEach(function(e,i){ var M=masks[i], S=M.S; tmp.width=tmp.height=S; var t=tmp.getContext('2d'); var ic=document.createElement('canvas'); ic.width=ic.height=S; var icx=ic.getContext('2d'); paper(icx,S); drawEye(icx,S,rowsOf(e.k,e.y),0,8760);
       t.globalCompositeOperation='source-over'; t.clearRect(0,0,S,S); t.drawImage(ic,0,0); t.fillStyle='#050404'; t.beginPath(); t.arc(S/2,S/2,M.r*0.36,0,7); t.fill();
       t.globalCompositeOperation='destination-in'; t.drawImage(M.m,0,0); ctx.drawImage(tmp,M.x0+ox,M.y0+oy);
-      ctx.save(); ctx.globalCompositeOperation='lighten'; ctx.beginPath(); ctx.arc(M.cx+ox,M.cy+oy,M.r,0,7); ctx.clip(); ctx.drawImage(F2.img,ox,oy); ctx.restore(); });
+      ctx.save(); ctx.globalCompositeOperation='lighten'; ctx.beginPath(); ctx.arc(M.cx+ox,M.cy+oy,M.r,0,7); ctx.clip(); ctx.drawImage(face,ox,oy); ctx.restore(); });
     [A,B].forEach(function(e,i){ var M=masks[i]; var primary = st.mode==='places' ? place(WORLD[e.k]).name : e.y; var secondary = st.mode==='places' ? place(WORLD[e.k]).country : place(WORLD[e.k]).name; chip(ctx,M.cx+ox,M.cy+oy+M.r*1.9,primary,secondary); });
     ctx.fillStyle='#0b0a09'; ctx.fillRect(0,FH,W,BAND);
     // labelled numbers for each eye, in the band, under its eye
